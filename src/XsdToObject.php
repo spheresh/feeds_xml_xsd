@@ -11,12 +11,16 @@ namespace feeds_xsd_xml;
 class XsdToObject {
     private $xsdurl;
     private $xsd;
+    private $types = [];
     private $elements = [];
 
     public function __construct($url){
         $this->xsdurl = $url;
         $this->xsd = simplexml_load_file($url);
         $this->xsd->registerXPathNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
+        foreach($this->xsd->xpath('/xs:schema/xs:simpleType') as $element){
+            $this->parseType($element);
+        }
         foreach($this->xsd->xpath('/xs:schema/xs:element') as $element){
             $this->parseElement($element);
         }
@@ -31,8 +35,13 @@ class XsdToObject {
                 foreach($element->xpath('xs:complexType//xs:element') as $subelement){
                     $this->parseElement($subelement, $parentpath . $name . '/');
                 }
+                foreach($element->xpath('xs:complexType/xs:attribute') as $attribute){
+                    $this->elements[$parentpath . $name . '/@' . $attribute->attributes()->name] = [
+                        'type' => 'attribute'
+                    ];
+                }
         }else{
-            $min = 0;
+            $min = 1;
             if(isset($element->attributes()->minOccurs)){
                 $min = (string) $element->attributes()->minOccurs;
             }
@@ -41,19 +50,17 @@ class XsdToObject {
                 $max = (string) $element->attributes()->maxOccurs;
             }
 
-            $this->elements[] = [
-                'xpath' => $parentpath . $name,
+            $this->elements[$parentpath . $name] = [
                 'type' => 'element',
                 'min' => $min,
                 'max' => $max
             ];
-            foreach($element->attributes() as $attribute){
-                $this->elements[] = [
-                    'xpath' => $parentpath . $name . '/@' . $attribute,
-                    'type' => 'attribute'
-                ];
-            }
         }
+    }
+
+    private function parseType($element)
+    {
+
     }
 }
 
