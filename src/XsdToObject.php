@@ -7,17 +7,16 @@
  */
 
 namespace feeds_xsd_xml;
-/*
-TODO: file documentation
- - class documentation
- - variables: init camelcase
- - empty constructor + new parse(string) method
- - run code style PHP Storm
- - teach use PHP Storm settings for DSrupal 7
- - method documentation
- - document path used (add reasons)
-*/
+    /*
+    TODO: file documentation
+     - teach use PHP Storm settings for DSrupal 7
+     - document path used (add reasons)
+    */
 
+/**
+ * Class XsdToObject
+ * @package feeds_xsd_xml
+ */
 class XsdToObject
 {
     private $xsdFile;
@@ -25,30 +24,46 @@ class XsdToObject
     private $types = [];
     private $elements = [];
 
+    /**
+     * Parse xsd string into possible xpath's and documentation
+     * @param string $xsd string containing xsd file
+     * @return array
+     */
     public function parse($xsd)
     {
         $this->xsdFile = $xsd;
         $this->xsd = simplexml_load_string($xsd);
         $this->xsd->registerXPathNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
+
+        // Loop through all xs:simpleTypes to get annotations
         foreach ($this->xsd->xpath('///xs:simpleType') as $element) {
             $this->parseType($element);
         }
+
+        // Loop through all xs:elements to get the xpaths
         foreach ($this->xsd->xpath('/xs:schema/xs:element') as $element) {
             $this->parseElement($element);
         }
+
+        return $this->elements;
     }
 
-    private function parseElement($element, $parentpath = '/')
+    /**
+     * Parse xs:element to the $this->elements array
+     * @param \SimpleXMLElement $element XSD node containing xs:element
+     * @param string $parentPath
+     */
+    private function parseElement($element, $parentPath = '/')
     {
 
         $name = (string)$element->attributes()->name;
         $children = $element->children('xs', true);
         if ($children->count() > 0) {
             foreach ($element->xpath('xs:complexType//xs:element') as $subelement) {
-                $this->parseElement($subelement, $parentpath . $name . '/');
+                $this->parseElement($subelement, $parentPath . $name . '/');
             }
             foreach ($element->xpath('xs:complexType/xs:attribute') as $attribute) {
-                $this->elements[$parentpath . $name . '/@' . $attribute->attributes()->name] = [
+                $this->elements[$parentPath . $name . '/@' . $attribute->attributes()->name] = [
                     'type' => 'attribute'
                 ];
             }
@@ -67,7 +82,7 @@ class XsdToObject
             } else {
                 $annotation = [];
             }
-            $this->elements[$parentpath . $name] = [
+            $this->elements[$parentPath . $name] = [
                 'type' => 'element',
                 'min' => $min,
                 'max' => $max,
@@ -76,6 +91,10 @@ class XsdToObject
         }
     }
 
+    /**
+     * Parse simpleTypes to $this->types to get annotations
+     * @param \SimpleXMLElement $element XSD node containing xs:simpleType
+     */
     private function parseType($element)
     {
         $name = (string)$element->attributes()->name;
