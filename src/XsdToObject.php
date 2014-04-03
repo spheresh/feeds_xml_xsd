@@ -20,14 +20,14 @@ TODO: file documentation
 
 class XsdToObject
 {
-    private $xsdfile;
+    private $xsdFile;
     private $xsd;
     private $types = [];
     private $elements = [];
 
     public function parse($xsd)
     {
-        $this->xsdfile = $xsd;
+        $this->xsdFile = $xsd;
         $this->xsd = simplexml_load_string($xsd);
         $this->xsd->registerXPathNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
         foreach ($this->xsd->xpath('///xs:simpleType') as $element) {
