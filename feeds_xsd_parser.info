@@ -1,0 +1,6 @@
+name = Feeds XSD and XML parser
+description = Parses an XML document based on its XSD schema.
+package = Feeds
+core = 7.x
+version = "7.x-1.x-dev"
+files[] = plugins/FeedsXSDParser.php
