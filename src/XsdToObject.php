@@ -18,7 +18,7 @@ class XsdToObject {
         $this->xsdurl = $url;
         $this->xsd = simplexml_load_file($url);
         $this->xsd->registerXPathNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
-        foreach($this->xsd->xpath('/xs:schema/xs:simpleType') as $element){
+        foreach($this->xsd->xpath('///xs:simpleType') as $element){
             $this->parseType($element);
         }
         foreach($this->xsd->xpath('/xs:schema/xs:element') as $element){
@@ -49,18 +49,29 @@ class XsdToObject {
             if(isset($element->attributes()->maxOccurs)){
                 $max = (string) $element->attributes()->maxOccurs;
             }
-
+            $type = (string) $element->attributes()->type;
+            if(!empty($type) && isset($this->types[$type])){
+                $annotation = $this->types[$type];
+            }else{
+                $annotation = [];
+            }
             $this->elements[$parentpath . $name] = [
                 'type' => 'element',
                 'min' => $min,
-                'max' => $max
+                'max' => $max,
+                'annotation' => $annotation
             ];
         }
     }
 
     private function parseType($element)
     {
-
+        $name = (string) $element->attributes()->name;
+        foreach($element->xpath('//xs:documentation') as $doc){
+            $lang = (string) $doc->attributes('xml', true)->lang;
+            $text = (string) $doc;
+            $this->types[$name][$lang] = $text;
+        }
     }
 }
 
