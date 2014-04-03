@@ -20,15 +20,15 @@ TODO: file documentation
 
 class XsdToObject
 {
-    private $xsdurl;
+    private $xsdfile;
     private $xsd;
     private $types = [];
     private $elements = [];
 
-    public function __construct($url)
+    public function parse($xsd)
     {
-        $this->xsdurl = $url;
-        $this->xsd = simplexml_load_file($url);
+        $this->xsdfile = $xsd;
+        $this->xsd = simplexml_load_string($xsd);
         $this->xsd->registerXPathNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
         foreach ($this->xsd->xpath('///xs:simpleType') as $element) {
             $this->parseType($element);
