@@ -7,6 +7,16 @@
  */
 
 namespace feeds_xsd_xml;
+/*
+TODO: file documentation
+ - class documentation
+ - variables: init camelcase
+ - empty constructor + new parse(string) method
+ - run code style PHP Storm
+ - teach use PHP Storm settings for DSrupal 7
+ - method documentation
+ - document path used (add reasons)
+*/
 
 class XsdToObject {
     private $xsdurl;
