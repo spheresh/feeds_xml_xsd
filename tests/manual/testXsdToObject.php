@@ -1,6 +1,6 @@
 #!/usr/bin/env php
 <?php
-namespace feeds_xsd_xml;
+//namespace feeds_xsd_xml;
 include(__DIR__ . '/../../src/XsdToObject.php');
 
 if(!isset($argv[1])){
