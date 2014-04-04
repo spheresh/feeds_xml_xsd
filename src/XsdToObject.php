@@ -6,12 +6,12 @@
  * Time: 3:50 PM
  */
 
-namespace feeds_xsd_xml;
-  /*
-  TODO: file documentation
-   - teach use PHP Storm settings for Drupal 7
-   - document path used (add reasons)
-  */
+//namespace feeds_xsd_xml;
+/*
+TODO: file documentation
+ - teach use PHP Storm settings for DSrupal 7
+ - document path used (add reasons)
+*/
 
 /**
  * Class XsdToObject
