@@ -101,7 +101,16 @@ class FeedsXSDParser extends \FeedsParser {
     $xpathsources = array();
     foreach($this->config['xpaths'] as $path=>$properties){
       $xpathsources[$path]['name'] = $path;
-      $xpathsources[$path]['description'] = 'pizza';
+      if(isset($properties['annotation'])){
+        if(isset($properties['annotation']['en'])){
+          $xpathsources[$path]['description'] = $properties['annotation']['en'];
+        }else{
+          $firstlang = array_shift($properties['annotation']);
+          $xpathsources[$path]['description'] = $firstlang;
+        }
+      }else{
+        $xpathsources[$path]['description'] = '';
+      }
     }
     return parent::getMappingSources() + $xpathsources;
   }
