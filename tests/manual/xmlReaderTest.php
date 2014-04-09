@@ -6,6 +6,7 @@ $map = array(
   "/option/enum_vals/enum_val/constraints/constraint/printer" => "printer"
 );
 
+//the gutenprint testfile with the above settings contain 92746 records
 
 
 
@@ -19,15 +20,19 @@ $i = 0;
 
 $incontext = false;
 $nodecount = 0;
+$skip = 92544; //skip to last node
 $node = array();
+$a = '';
 while($reader->read()){
   $i++;
   if($i == $limit){
     //die();
   }
+
   if($reader->nodeType == XMLReader::ELEMENT && !$reader->isEmptyElement){
     $currentxpath[] = $reader->name;
     $xpath = '/' . implode('/' , $currentxpath);
+    $a .= $xpath . PHP_EOL;
     if($incontext){
       if(strlen($xpath) < $contextlen){
         $incontext = false;
@@ -36,8 +41,14 @@ while($reader->read()){
 
     }
     if($xpath == $context){
+
+      if($skip>0){
+        for($j = 0; $reader->next($reader->name) && ($skip > 0); $skip--, $j++);
+        echo $j . '/' . $skip;
+      }
       if($incontext){
         print_r($node);
+        $nodecount++;
       }
       $incontext = true;
       $node = array();
@@ -54,3 +65,5 @@ while($reader->read()){
     array_pop($currentxpath);
   }
 }
+echo $nodecount;
+//file_put_contents('test.log', $a);
