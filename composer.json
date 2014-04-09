@@ -1,0 +1,19 @@
+{
+    "name": "drupal/feeds_xsd_xml",
+    "description": "XML Feed importer with XSD support",
+    "minimum-stability": "dev",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Clemens Tolboom",
+            "email": "clemens@build2be.nl"
+        },
+        {
+            "name": "Martijn Braam",
+            "email": "martijn@brixit.nl"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "4.1.x-dev"
+    }
+}
