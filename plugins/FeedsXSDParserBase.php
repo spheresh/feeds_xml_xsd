@@ -83,7 +83,7 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     $progress = $state->pointer ? $state->pointer : 0;
     $all_nodes = $this->xpath->namespacedQuery($context_query, NULL, 'context');
 
-    //TODO debug counter
+    //TODO remove debug counter
     $dcount = 0;
     foreach ($all_nodes as $node) {
       // Invoke a hook to check whether the domnode should be skipped.
@@ -98,15 +98,12 @@ abstract class FeedsXSDParserBase extends FeedsParser {
         $xpath = '/Manifest' . $xpath;
         $xpath = str_replace($source_config['context'], '', $xpath);
 
-        $query = $xpath;
-
-        $result = $this->parseSourceElement($query, $node, 'xsd');
-        //drupal_set_message($result->tagName);
+        $result = $this->parseSourceElement($xpath, $node, 'xsd');
         if (isset($result)) {
           $parsed_item[$target] = print_r($result, TRUE);
         }
       }
-      if ($dcount < 1) {
+      if ($dcount < 10) {
         dsm($parsed_item);
         $dcount++;
       }
@@ -114,7 +111,7 @@ abstract class FeedsXSDParserBase extends FeedsParser {
         $parser_result->items[] = $parsed_item;
       }
     }
-
+dsm($parser_result);
     $state->progress($state->total, $progress);
     unset($this->doc);
     unset($this->xpath);
