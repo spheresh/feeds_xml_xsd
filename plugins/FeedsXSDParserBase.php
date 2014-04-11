@@ -45,7 +45,7 @@ abstract class FeedsXSDParserBase extends FeedsParser {
    * Implements FeedsParser::parse().
    */
   public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
-    $source_config = $source->getConfigFor($this);
+    $source_config = $source->getConfigFor($this);;
     $state = $source->state(FEEDS_PARSE);
 
     $source_config = $this->getConfig();
@@ -56,13 +56,12 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     $parser_result = new FeedsParserResult();
 
     $mappings = $this->getOwnMappings();
-
     $fetcher_config = $source->getConfigFor($source->importer->fetcher);
     $parser_result->link = $fetcher_config['source'];
 
     $this->xpath = new FeedsXPathParserDOMXPath($this->doc);
 
-    $source_config['context'] = '/Manifest/Dossier';
+    $source_config['context'] = '/Manifest/Dossier/Plan';
     $context_query = '(' . $source_config['context'] . ')';
     if (empty($state->total)) {
       $state->total = $this->xpath->namespacedQuery('count(' . $context_query . ')', $this->doc, 'count');
@@ -75,34 +74,31 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     $context_query .= "[position() > $start and position() <= $end]";
     $progress = $state->pointer ? $state->pointer : 0;
     $all_nodes = $this->xpath->namespacedQuery($context_query, NULL, 'context');
-    dsm(count($all_nodes));
     $dcount = 0;
     foreach ($all_nodes as $node) {
       // Invoke a hook to check whether the domnode should be skipped.
       if (in_array(TRUE, module_invoke_all('feeds_xpathparser_filter_domnode', $node, $this->doc, $source), TRUE)) {
         //continue;
       }
-
+      //dsm($node->tagName);
       $parsed_item = $variables = array();
-      foreach ($source_config['sources'] as $element_key => $query) {
-        // Variable substitution.
-        $query = strtr($query, $variables);
-        if($dcount<10){
-        dsm($variables);
-          $dcount++;
-        }
-        // Parse the item.
-        $result = $this->parseSourceElement($query, $node, $element_key);
-        if (isset($result)) {
-          if (!is_array($result)) {
-            $variables['$' . $mappings[$element_key]] = $result;
+      foreach ($mappings as $query => $target) {
+        $qpart = explode(':', $query, 2);
+        //TODO: xsd not correctly parsed
+        $qpart[1] = '/Manifest' . $qpart[1];
+        $qpart[1] = str_replace($source_config['context'], '', $qpart[1]);
 
-          }
-          else {
-            $variables['$' . $mappings[$element_key]] = '';
-          }
-          $parsed_item[$element_key] = $result;
+        $query = $qpart[1];
+
+        $result = $this->parseSourceElement($query, $node, 'xsd');
+        //drupal_set_message($result->tagName);
+        if (isset($result)) {
+          $parsed_item[$target] = print_r($result, true);
         }
+      }
+      if($dcount<1){
+      dsm($parsed_item);
+        $dcount++;
       }
       if (!empty($parsed_item)) {
         $parser_result->items[] = $parsed_item;
@@ -134,21 +130,14 @@ abstract class FeedsXSDParserBase extends FeedsParser {
       return;
     }
 
-    $node_list = $this->xpath->namespacedQuery($query, $context, $source);
-
+    $node_list = $this->xpath->namespacedQuery('/' . $query, $context, $source);
+    //dsm($node_list->length);
     // Iterate through the results of the XPath query.  If this source is
     // configured to return raw xml, make it so.
     if ($node_list instanceof DOMNodeList) {
       $results = array();
-      if (in_array($source, $this->rawXML)) {
-        foreach ($node_list as $node) {
-          $results[] = $this->getRaw($node);
-        }
-      }
-      else {
-        foreach ($node_list as $node) {
-          $results[] = $node->nodeValue;
-        }
+      foreach ($node_list as $node) {
+        $results[] = $node->nodeValue;
       }
       // Return single result if so.
       if (count($results) === 1) {
