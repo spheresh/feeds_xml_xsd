@@ -93,12 +93,12 @@ abstract class FeedsXSDParserBase extends FeedsParser {
       //dsm($node->tagName);
       $parsed_item = $variables = array();
       foreach ($mappings as $query => $target) {
-        $qpart = explode(':', $query, 2);
+        list($parser_id, $xpath) = explode(':', $query, 2);
         //TODO: xsd not correctly parsed
-        $qpart[1] = '/Manifest' . $qpart[1];
-        $qpart[1] = str_replace($source_config['context'], '', $qpart[1]);
+        $xpath = '/Manifest' . $xpath;
+        $xpath = str_replace($source_config['context'], '', $xpath);
 
-        $query = $qpart[1];
+        $query = $xpath;
 
         $result = $this->parseSourceElement($query, $node, 'xsd');
         //drupal_set_message($result->tagName);
