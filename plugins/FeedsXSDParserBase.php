@@ -48,58 +48,55 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     $source_config = $source->getConfigFor($this);
     $state = $source->state(FEEDS_PARSE);
 
-    if (empty($source_config)) {
-      $source_config = $this->getConfig();
-    }
+    $source_config = $this->getConfig();
+
 
     $this->doc = $this->setup($source_config, $fetcher_result);
 
     $parser_result = new FeedsParserResult();
 
     $mappings = $this->getOwnMappings();
-    $this->rawXML = array_keys(array_filter($source_config['rawXML']));
-    // Set link.
+
     $fetcher_config = $source->getConfigFor($source->importer->fetcher);
     $parser_result->link = $fetcher_config['source'];
 
     $this->xpath = new FeedsXPathParserDOMXPath($this->doc);
-    $config = array();
-    $config['debug'] = array_keys(array_filter($source_config['exp']['debug']));
-    $config['errors'] = $source_config['exp']['errors'];
 
-    $this->xpath->setConfig($config);
-
+    $source_config['context'] = '/Manifest/Dossier';
     $context_query = '(' . $source_config['context'] . ')';
     if (empty($state->total)) {
       $state->total = $this->xpath->namespacedQuery('count(' . $context_query . ')', $this->doc, 'count');
     }
-
     $start = $state->pointer ? $state->pointer : 0;
     $limit = $start + $source->importer->getLimit();
     $end = ($limit > $state->total) ? $state->total : $limit;
     $state->pointer = $end;
 
     $context_query .= "[position() > $start and position() <= $end]";
-
     $progress = $state->pointer ? $state->pointer : 0;
-
     $all_nodes = $this->xpath->namespacedQuery($context_query, NULL, 'context');
-
+    dsm(count($all_nodes));
+    $dcount = 0;
     foreach ($all_nodes as $node) {
       // Invoke a hook to check whether the domnode should be skipped.
       if (in_array(TRUE, module_invoke_all('feeds_xpathparser_filter_domnode', $node, $this->doc, $source), TRUE)) {
-        continue;
+        //continue;
       }
 
       $parsed_item = $variables = array();
       foreach ($source_config['sources'] as $element_key => $query) {
         // Variable substitution.
         $query = strtr($query, $variables);
+        if($dcount<10){
+        dsm($variables);
+          $dcount++;
+        }
         // Parse the item.
         $result = $this->parseSourceElement($query, $node, $element_key);
         if (isset($result)) {
           if (!is_array($result)) {
             $variables['$' . $mappings[$element_key]] = $result;
+
           }
           else {
             $variables['$' . $mappings[$element_key]] = '';
