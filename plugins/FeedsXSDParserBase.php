@@ -96,11 +96,12 @@ abstract class FeedsXSDParserBase extends FeedsParser {
         list($parser_id, $xpath) = explode(':', $query, 2);
         //TODO: xsd not correctly parsed
         $xpath = '/Manifest' . $xpath;
-        $xpath = str_replace($source_config['context'], '', $xpath);
+        // TODO: make this better replacement
+        $xpath = str_replace($source_config['context'] . '/', '', $xpath);
 
         $result = $this->parseSourceElement($xpath, $node, 'xsd');
         if (isset($result)) {
-          $parsed_item[$target] = print_r($result, TRUE);
+          $parsed_item[$query] = $result;
         }
       }
       if ($dcount < 10) {
