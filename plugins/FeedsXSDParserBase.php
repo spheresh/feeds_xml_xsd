@@ -103,11 +103,11 @@ abstract class FeedsXSDParserBase extends FeedsParser {
         $result = $this->parseSourceElement($query, $node, 'xsd');
         //drupal_set_message($result->tagName);
         if (isset($result)) {
-          $parsed_item[$target] = print_r($result, true);
+          $parsed_item[$target] = print_r($result, TRUE);
         }
       }
-      if($dcount<1){
-      dsm($parsed_item);
+      if ($dcount < 1) {
+        dsm($parsed_item);
         $dcount++;
       }
       if (!empty($parsed_item)) {
@@ -181,8 +181,9 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     }
 
     if (isset($source_config['allow_override']) &&
-        !$source_config['allow_override'] &&
-        empty($source_config['config'])) {
+      !$source_config['allow_override'] &&
+      empty($source_config['config'])
+    ) {
       return;
     }
 
