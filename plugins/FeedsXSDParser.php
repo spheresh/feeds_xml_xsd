@@ -7,13 +7,6 @@
  */
 
 class FeedsXSDParser extends FeedsXSDParserXML {
-  /**
-   * Implements FeedsParser::parse().
-   */
-  public function parse(FeedsSource $source, FeedsFetcherResult $fetcher_result) {
-    return;
-//        return new FeedsParserResult($rows, $source->feed_nid);
-  }
 
   /**
    * Define defaults.

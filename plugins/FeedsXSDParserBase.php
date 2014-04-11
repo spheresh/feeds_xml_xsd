@@ -493,7 +493,7 @@ abstract class FeedsXSDParserBase extends FeedsParser {
   protected function filterMappings($mappings) {
     $our_mappings = array();
     foreach ($mappings as $mapping) {
-      if (strpos($mapping['source'], 'xpathparser:') === 0) {
+      if (strpos($mapping['source'], 'xsd:') === 0) {
         $our_mappings[$mapping['source']] = $mapping['target'];
       }
     }
