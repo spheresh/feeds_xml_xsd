@@ -61,6 +61,14 @@ abstract class FeedsXSDParserBase extends FeedsParser {
 
     $this->xpath = new FeedsXPathParserDOMXPath($this->doc);
 
+    // TODO: fix source config
+    $config = array();
+    $config['debug'] = array("A");//array_keys(array_filter($source_config['exp']['debug']));
+    $config['errors'] = 1;//$source_config['exp']['errors'];
+
+    $this->xpath->setConfig($config);
+
+
     $source_config['context'] = '/Manifest/Dossier/Plan';
     $context_query = '(' . $source_config['context'] . ')';
     if (empty($state->total)) {

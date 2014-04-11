@@ -32,6 +32,9 @@ class FeedsXSDParserXML extends FeedsXSDParserBase {
     $use = $this->errorStart();
     $success = $doc->loadXML($raw);
     unset($raw);
+    // TODO fix source config
+    $source_config['exp']['errors'] = true;
+    // end TODO
     $this->errorStop($use, $source_config['exp']['errors']);
     if (!$success) {
       throw new Exception(t('There was an error parsing the XML document.'));
