@@ -138,14 +138,21 @@ dsm($parser_result);
       return;
     }
 
-    $node_list = $this->xpath->namespacedQuery('/' . $query, $context, $source);
-    //dsm($node_list->length);
+    $node_list = $this->xpath->namespacedQuery($query, $context, $source);
+
     // Iterate through the results of the XPath query.  If this source is
     // configured to return raw xml, make it so.
     if ($node_list instanceof DOMNodeList) {
       $results = array();
-      foreach ($node_list as $node) {
-        $results[] = $node->nodeValue;
+      if (in_array($source, $this->rawXML)) {
+        foreach ($node_list as $node) {
+          $results[] = $this->getRaw($node);
+        }
+      }
+      else {
+        foreach ($node_list as $node) {
+          $results[] = $node->nodeValue;
+        }
       }
       // Return single result if so.
       if (count($results) === 1) {
