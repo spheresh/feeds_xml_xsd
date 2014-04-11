@@ -74,6 +74,8 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     $context_query .= "[position() > $start and position() <= $end]";
     $progress = $state->pointer ? $state->pointer : 0;
     $all_nodes = $this->xpath->namespacedQuery($context_query, NULL, 'context');
+
+    //TODO debug counter
     $dcount = 0;
     foreach ($all_nodes as $node) {
       // Invoke a hook to check whether the domnode should be skipped.
