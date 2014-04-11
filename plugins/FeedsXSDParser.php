@@ -6,13 +6,7 @@
  * Time: 15:51
  */
 
-//namespace Drupal\feeds_xsd_xml;
-
-//use FeedsFetcherResult;
-//use FeedsSource;
-
-class FeedsXSDParser extends \FeedsParser {
-
+class FeedsXSDParser extends FeedsXSDParserXML {
   /**
    * Implements FeedsParser::parse().
    */

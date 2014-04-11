@@ -5,3 +5,7 @@ core = 7.x
 version = "7.x-1.x-dev"
 files[] = plugins/FeedsXSDParser.php
 files[] = src/XsdToObject.php
+
+; Note files are copied from feeds_xpathparser project then adjusted to our needs
+files[] = plugins/FeedsXSDParserXML.php
+files[] = plugins/FeedsXSDParserBase.php
