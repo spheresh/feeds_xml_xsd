@@ -90,7 +90,6 @@ abstract class FeedsXSDParserBase extends FeedsParser {
       if (in_array(TRUE, module_invoke_all('feeds_xpathparser_filter_domnode', $node, $this->doc, $source), TRUE)) {
         //continue;
       }
-      //dsm($node->tagName);
       $parsed_item = $variables = array();
       foreach ($mappings as $query => $target) {
         list($parser_id, $xpath) = explode(':', $query, 2);
@@ -112,7 +111,6 @@ abstract class FeedsXSDParserBase extends FeedsParser {
         $parser_result->items[] = $parsed_item;
       }
     }
-dsm($parser_result);
     $state->progress($state->total, $progress);
     unset($this->doc);
     unset($this->xpath);
