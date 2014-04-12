@@ -46,6 +46,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       'xsd_uri' => 'http://schemas.geonovum.nl/stri/2012/1.0/STRI2012.xsd',
       'xsd_fid' => 0,
       'xpaths' => array(),
+      'context' => '',
     );
   }
 
@@ -53,11 +54,32 @@ class FeedsXSDParser extends FeedsXSDParserXML {
    * Build configuration form.
    */
   public function configForm(&$form_state) {
+    $config = $this->getConfig();
+    // TODO remove this line : reset test
+    //$config = $this->configDefaults();
+    $xsd_fid = $config['xsd_fid'];
+    if ($xsd_fid) {
+      $file = file_load($xsd_fid);
+    }
     $form = array();
     $form['#attributes']['enctype'] = 'multipart/form-data';
     $form['xsd_upload'] = array(
       '#type' => 'file',
       '#title' => t('Upload XSD schema'),
+      '#required' => !$xsd_fid,
+      '#description' => $xsd_fid ? t("Using file %uri", array('%uri' => $file->uri)) : t("No file selected yet"),
+    );
+    $form['xsd_fid'] = array(
+      '#type' => 'value',
+      '#value' => $xsd_fid,
+    );
+    $form['context'] = array(
+      '#type' => 'select',
+      '#disabled' => !count($config['xpaths']),
+      '#title' => t('Context path'),
+      '#options' => count($config['xpaths']) ? array_keys($config['xpaths']): array(),
+      '#description' => t("The path from which to extract repeating elements."),
+      '#value' => $config['context'],
     );
 
     return $form;
@@ -67,6 +89,9 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     $file = file_save_upload('xsd_upload', array(
       'file_validate_extensions' => array('xsd')
     ));
+    if ($values['xsd_fid'] && !$file) {
+      $file = file_load($values['xsd_fid']);
+    }
     if ($file) {
       $parser = new XsdToObject();
       $xsd = file_get_contents($file->uri);
@@ -75,6 +100,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
         form_set_error('xsd_upload', t("This doesn't seen to be a valid XSD schema"));
       }
       else {
+        $values['xsd_fid'] = $file->fid;
         $values['xsd_upload'] = $file;
         $values['xpaths'] = $result;
       }
@@ -91,6 +117,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     $file = $values['xsd_upload'];
     $file->status = FILE_STATUS_PERMANENT;
     file_save($file);
+    $values['xsd_fid'] = $file->fid;
     $this->config['xpaths'] = $values['xpaths'];
     parent::configFormSubmit($values);
   }
