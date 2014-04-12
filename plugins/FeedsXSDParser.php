@@ -97,24 +97,25 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       $xsd = file_get_contents($file->uri);
       $result = $parser->parse($xsd);
       if (count($result) == 0) {
-        form_set_error('xsd_upload', t("This doesn't seen to be a valid XSD schema"));
+        form_set_error('xsd_upload', t("This does not seem to be a valid XSD schema"));
       }
       else {
         $values['xsd_fid'] = $file->fid;
         $values['xsd_upload'] = $file;
         $values['xpaths'] = $result;
       }
-
     }
     else {
       form_set_error('xsd_upload', t('No XSD Schema uploaded.'));
     }
 
+    // TODO: What must we keep from parent form validate?
     parent::configFormValidate($values);
   }
 
   public function configFormSubmit(&$values) {
     $file = $values['xsd_upload'];
+    // TODO is file now moved to public:// or still tmp://?
     $file->status = FILE_STATUS_PERMANENT;
     file_save($file);
     $values['xsd_fid'] = $file->fid;
@@ -123,22 +124,22 @@ class FeedsXSDParser extends FeedsXSDParserXML {
   }
 
   public function getMappingSources() {
-    $xpathsources = array();
+    $xpath_sources = array();
     foreach ($this->config['xpaths'] as $path => $properties) {
-      $xpathsources['xsd:' . $path]['name'] = 'xsd:' . $path;
+      $xpath_sources['xsd:' . $path]['name'] = 'xsd:' . $path;
       if (isset($properties['annotation'])) {
         if (isset($properties['annotation']['en'])) {
-          $xpathsources['xsd:' . $path]['description'] = $properties['annotation']['en'];
+          $xpath_sources['xsd:' . $path]['description'] = $properties['annotation']['en'];
         }
         else {
           $firstlang = array_shift($properties['annotation']);
-          $xpathsources['xsd:' . $path]['description'] = $firstlang;
+          $xpath_sources['xsd:' . $path]['description'] = $firstlang;
         }
       }
       else {
-        $xpathsources['xsd:' . $path]['description'] = '';
+        $xpath_sources['xsd:' . $path]['description'] = '';
       }
     }
-    return parent::getMappingSources() + $xpathsources;
+    return parent::getMappingSources() + $xpath_sources;
   }
 }
