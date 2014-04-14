@@ -1,26 +1,42 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: martijn
- * Date: 4/2/14
- * Time: 3:50 PM
+ * @file
+ * Convert a given XSD into an array structure.
  */
 
-//namespace feeds_xsd_xml;
-/*
-TODO: file documentation
- - teach use PHP Storm settings for DSrupal 7
- - document path used (add reasons)
-*/
+/**
+ * TODO: file documentation
+ * - teach use PHP Storm settings for Drupal 7
+ * - document path used (add reasons)
+ */
 
 /**
  * Class XsdToObject
- * @package feeds_xsd_xml
  */
 class XsdToObject {
+
+  /**
+   * @var string
+   * File URI to process.
+   */
   private $xsdFile;
+
+  /**
+   * @var SimpleXML
+   * contents of file in SimpleXML data structure
+   */
   private $xsd;
+
+  /**
+   * @var array
+   * Contains element types found.
+   */
   private $types = array();
+
+  /**
+   * @var array
+   * List of elements found.
+   */
   private $elements = array();
 
   /**
@@ -56,8 +72,8 @@ class XsdToObject {
     $name = (string) $element->attributes()->name;
     $children = $element->children('xs', TRUE);
     if ($children->count() > 0) {
-      foreach ($element->xpath('xs:complexType//xs:element') as $subelement) {
-        $this->parseElement($subelement, $parentPath . $name . '/');
+      foreach ($element->xpath('xs:complexType//xs:element') as $subElement) {
+        $this->parseElement($subElement, $parentPath . $name . '/');
       }
       foreach ($element->xpath('xs:complexType/xs:attribute') as $attribute) {
         $this->elements[$parentPath . $name . '/@' . $attribute->attributes()->name] = array(
