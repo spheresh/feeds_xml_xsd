@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
-//namespace feeds_xsd_xml;
+
 include(__DIR__ . '/../../src/XsdToObject.php');
 
-if(!isset($argv[1])){
-    echo 'Usage: testXsdToObject [xsd file or url]';
-    exit(1);
+if (!isset($argv[1])) {
+  echo 'Usage: testXsdToObject [URI to XSD file]';
+  exit(1);
 }
 
 $test = new XsdToObject();
