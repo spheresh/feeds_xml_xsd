@@ -6,8 +6,9 @@
 
 /**
  * TODO: file documentation
- * - teach use PHP Storm settings for Drupal 7
- * - document path used (add reasons)
+ * TODO: document path used (add reasons)
+ * TODO: parse sequence
+ * TODO: parse complex type
  */
 
 /**
