@@ -5,10 +5,7 @@
  */
 
 /**
- * TODO: file documentation
  * TODO: document path used (add reasons)
- * TODO: parse sequence
- * TODO: parse complex type
  */
 
 /**
