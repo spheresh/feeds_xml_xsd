@@ -13,7 +13,10 @@
             "email": "martijn@brixit.nl"
         }
     ],
+    "autoload": {
+        "psr-4": {"": "src/"}
+    },
     "require-dev": {
-        "phpunit/phpunit": "4.1.x-dev"
+        "phpunit/phpunit": "3.7.*"
     }
 }
