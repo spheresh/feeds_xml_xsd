@@ -82,6 +82,14 @@ class XsdToObject {
         );
       }
     }
+    elseif (isset($element->attributes()->ref)) {
+      $ref = (string) $element->attributes()->ref;
+      $xpathquery = '(/xs:schema/xs:element[@name="' . $ref . '"])[1]';
+      $refelement = $this->xsd->xpath($xpathquery);
+      if ($refelement) {
+        $this->parseElement($refelement[0], $parentPath);
+      }
+    }
     else {
       $min = 1;
       if (isset($element->attributes()->minOccurs)) {
