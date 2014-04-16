@@ -72,14 +72,15 @@ class XsdToObject {
 
     $name = (string) $element->attributes()->name;
     $children = $element->children('xs', TRUE);
+    $attributes = $element->xpath('xs:complexType/xs:attribute');
+    foreach ($element->xpath('xs:complexType/xs:attribute') as $attribute) {
+      $this->elements[$parentPath . $name . '/@' . $attribute->attributes()->name] = array(
+        'type' => 'attribute'
+      );
+    }
     if ($children->count() > 0) {
       foreach ($element->xpath('xs:complexType//xs:element') as $subElement) {
         $this->parseElement($subElement, $parentPath . $name . '/');
-      }
-      foreach ($element->xpath('xs:complexType/xs:attribute') as $attribute) {
-        $this->elements[$parentPath . $name . '/@' . $attribute->attributes()->name] = array(
-          'type' => 'attribute'
-        );
       }
     }
     elseif (isset($element->attributes()->ref)) {
