@@ -12,8 +12,15 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
   function setupGeoNovum() {
     $uri = __DIR__ . "/fixtures/STRI2012.xsd";
     $contents = file_get_contents($uri);
-    $this->assertNotEmpty($contents, "Found XSD content");
     $this->geonovum = $this->xsd->parse($contents);
+
+    $this->geonovumContext = array_unique(array_map('dirname', array_keys($this->geonovum)));
+    static $printed = FALSE;
+    if (!$printed) {
+      $printed = TRUE;
+      print_r(array_keys($this->geonovum));
+      print_r($this->geonovumContext);
+    }
   }
 
   /**
@@ -43,7 +50,7 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
    * @dataProvider context
    */
   function testGeoNovumContext($path) {
-    $this->assertArrayHasKey($path, $this->geonovum, $path . ' found');
+    $this->assertTrue(in_array($path, $this->geonovumContext), $path . ' found');
   }
 
   public function values() {
@@ -60,6 +67,7 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
       array('/Manifest/@OverheidsCode'),
       array('/Manifest/Dossier/@Id'),
       array('/Manifest/Dossier/@Status'),
+      array('/Manifest/Dossier/Plan/@Id'),
     );
   }
 

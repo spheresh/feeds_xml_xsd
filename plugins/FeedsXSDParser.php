@@ -73,11 +73,14 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       '#type' => 'value',
       '#value' => $xsd_fid,
     );
+
+    $contexts = array_unique(array_map('dirname', array_keys($config['xpaths'])));
+
     $form['context'] = array(
       '#type' => 'select',
       '#disabled' => !count($config['xpaths']),
       '#title' => t('Context path'),
-      '#options' => count($config['xpaths']) ? array_keys($config['xpaths']): array(),
+      '#options' => count($config['xpaths']) ? $contexts: array(),
       '#description' => t("The path from which to extract repeating elements."),
       '#value' => $config['context'],
     );
