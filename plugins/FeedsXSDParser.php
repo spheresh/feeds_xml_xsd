@@ -66,7 +66,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     $form['xsd_upload'] = array(
       '#type' => 'file',
       '#title' => t('Upload XSD schema'),
-      '#required' => !$xsd_fid,
+      //'#required' => !$xsd_fid,
       '#description' => $xsd_fid ? t("Using file %uri", array('%uri' => $file->uri)) : t("No file selected yet"),
     );
     $form['xsd_fid'] = array(
@@ -75,14 +75,14 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     );
 
     $contexts = array_unique(array_map('dirname', array_keys($config['xpaths'])));
-
+    $contexts = array_combine($contexts, $contexts);
     $form['context'] = array(
       '#type' => 'select',
       '#disabled' => !count($config['xpaths']),
       '#title' => t('Context path'),
       '#options' => count($config['xpaths']) ? $contexts: array(),
       '#description' => t("The path from which to extract repeating elements."),
-      '#value' => $config['context'],
+      '#default_value' => $config['context'],
     );
 
     return $form;
@@ -113,7 +113,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     }
 
     // TODO: What must we keep from parent form validate?
-    parent::configFormValidate($values);
+    //parent::configFormValidate($values);
   }
 
   public function configFormSubmit(&$values) {
@@ -122,6 +122,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     $file->status = FILE_STATUS_PERMANENT;
     file_save($file);
     $values['xsd_fid'] = $file->fid;
+    $this->config['context'] = $values['context'];
     $this->config['xpaths'] = $values['xpaths'];
     parent::configFormSubmit($values);
   }

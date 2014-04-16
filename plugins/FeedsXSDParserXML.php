@@ -7,33 +7,19 @@
  * NOTE:
  * This is a file copy / rename of FeedsXPathParserBase
  */
-
 class FeedsXSDParserXML extends FeedsXSDParserBase {
 
   /**
    * Implements FeedsXPathParserBase::setup().
    */
   protected function setup($source_config, FeedsFetcherResult $fetcher_result) {
-
-    if (!empty($source_config['exp']['tidy'])) {
-      $config = array(
-        'input-xml' => TRUE,
-        'wrap'      => 0,
-        'tidy-mark' => FALSE,
-      );
-      // Default tidy encoding is UTF8.
-      $encoding = $source_config['exp']['tidy_encoding'];
-      $raw = tidy_repair_string(trim($fetcher_result->getRaw()), $config, $encoding);
-    }
-    else {
-      $raw = $fetcher_result->getRaw();
-    }
+    $raw = $fetcher_result->getRaw();
     $doc = new DOMDocument();
     $use = $this->errorStart();
     $success = $doc->loadXML($raw);
     unset($raw);
     // TODO fix source config
-    $source_config['exp']['errors'] = true;
+    $source_config['exp']['errors'] = TRUE;
     // end TODO
     $this->errorStop($use, $source_config['exp']['errors']);
     if (!$success) {
