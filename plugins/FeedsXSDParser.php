@@ -19,11 +19,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
    * Define defaults.
    */
   public function sourceDefaults() {
-    return array(
-      'xsd_uri' => $this->config['xsd_uri'],
-      'xsd_fid' => $this->config['xsd_fid'],
-      'xpaths' => $this->config['xpaths'],
-    );
+    return array();
   }
 
   /**
@@ -40,10 +36,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
    * Define default configuration.
    */
   public function configDefaults() {
-    // TODO must these match with sourceDefaults?
     return array(
-      // TODO: hardcoded schema
-      'xsd_uri' => 'http://schemas.geonovum.nl/stri/2012/1.0/STRI2012.xsd',
       'xsd_fid' => 0,
       'xpaths' => array(),
       'context' => '',
@@ -55,8 +48,6 @@ class FeedsXSDParser extends FeedsXSDParserXML {
    */
   public function configForm(&$form_state) {
     $config = $this->getConfig();
-    // TODO remove this line : reset test
-    //$config = $this->configDefaults();
     $xsd_fid = $config['xsd_fid'];
     if ($xsd_fid) {
       $file = file_load($xsd_fid);
@@ -111,16 +102,14 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     else {
       form_set_error('xsd_upload', t('No XSD Schema uploaded.'));
     }
-
-    // TODO: What must we keep from parent form validate?
-    //parent::configFormValidate($values);
   }
 
   public function configFormSubmit(&$values) {
+    /** @var  $file */
     $file = $values['xsd_upload'];
-    // TODO is file now moved to public:// or still tmp://?
     $file->status = FILE_STATUS_PERMANENT;
-    file_save($file);
+    $file = file_save($file);
+    file_move($file, 'public://' . $file->filename);
     $values['xsd_fid'] = $file->fid;
     $this->config['context'] = $values['context'];
     $this->config['xpaths'] = $values['xpaths'];

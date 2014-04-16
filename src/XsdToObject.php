@@ -4,9 +4,6 @@
  * Convert a given XSD into an array structure.
  */
 
-/**
- * TODO: document path used (add reasons)
- */
 
 /**
  * Class XsdToObject
@@ -115,18 +112,15 @@ class XsdToObject {
         $max = (string) $element->attributes()->maxOccurs;
       }
       $type = (string) $element->attributes()->type;
-      if (!empty($type) && isset($this->types[$type])) {
-        $annotation = $this->types[$type];
-      }
-      else {
-        $annotation = array();
-      }
+
       $this->elements[$parentPath . $name] = array(
         'type' => 'element',
         'min' => $min,
         'max' => $max,
-        'annotation' => $annotation
       );
+      if (!empty($type) && isset($this->types[$type])) {
+        $this->elements[$parentPath . $name]['annotation'] = $this->types[$type];
+      }
     }
   }
 
@@ -136,7 +130,7 @@ class XsdToObject {
    */
   private function parseType($element) {
     $name = (string) $element->attributes()->name;
-    foreach ($element->xpath('//xs:documentation') as $doc) {
+    foreach ($element->xpath('xs:annotation/xs:documentation') as $doc) {
       $lang = (string) $doc->attributes('xml', TRUE)->lang;
       $text = (string) $doc;
       $this->types[$name][$lang] = $text;

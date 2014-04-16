@@ -42,7 +42,6 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
     }
     var_dump($annotations);
     $this->assertEmpty($annotations[''], 'Only existing annotation should be listed');
-//    unset($annotations['']);
     $this->assertSameSize(array(1), $annotations[0], "Expected one item in annotation");
   }
 

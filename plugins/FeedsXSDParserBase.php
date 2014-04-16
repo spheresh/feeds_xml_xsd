@@ -55,13 +55,6 @@ abstract class FeedsXSDParserBase extends FeedsParser {
     $parser_result->link = $fetcher_config['source'];
     $this->xpath = new FeedsXPathParserDOMXPath($this->doc);
 
-    // TODO: fix source config
-    $config = array();
-    $config['debug'] = array("A");//array_keys(array_filter($source_config['exp']['debug']));
-    $config['errors'] = 1;//$source_config['exp']['errors'];
-
-    $this->xpath->setConfig($config);
-
     // Get number of nodes inside context
     $context_query = '(' . $source_config['context'] . ')';
     if (empty($state->total)) {
