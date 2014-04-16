@@ -73,7 +73,7 @@ EOF;
    * http://schemas.geonovum.nl/stri/2012/1.0/STRI2012.xsd
    */
   function testGeoNovum() {
-    $uri = "http://schemas.geonovum.nl/stri/2012/1.0/STRI2012.xsd";
+    $uri = __DIR__ . "/fixtures/STRI2012.xsd";
     $contents = file_get_contents($uri);
     $this->assertNotEmpty($contents, "Found XSD content");
 
