@@ -23,8 +23,13 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
    *
    * @dataProvider values
    */
-  function testGeoNovumValues($path) {
-    $this->assertArrayHasKey($path, $this->geonovum, $path . ' found');
+  function testGeoNovumValues($path, $ok = 'X') {
+    if ($ok == 'X') {
+      $this->assertArrayHasKey($path, $this->geonovum, $path . ' found');
+    }
+    else {
+      $this->assertArrayNotHasKey($path, $this->geonovum, $path . ' not found');
+    }
   }
 
   /**
@@ -43,7 +48,10 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
 
   public function values() {
     return $paths = array(
-      array('/Manifest/Dossier/Naam'),
+      array('/Manifest/Dossier/Plan/Naam'),
+      array('/Manifest/Dossier/Plan/Datum'),
+      array('/Manifest/Dossier/Naam', 'F'),
+      array('/Manifest/Dossier/Datum', 'F'),
     );
   }
 
