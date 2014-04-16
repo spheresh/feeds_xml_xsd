@@ -95,7 +95,8 @@ class XsdToObject {
       }
     }
     if ($children->count() > 0) {
-      foreach ($element->xpath('xs:complexType//xs:element') as $subElement) {
+      // Find both complexType/Sequence/element and complexType/All/element
+      foreach ($element->xpath('xs:complexType/*/xs:element') as $subElement) {
         $this->parseElement($subElement, $parentPath . $name . '/');
       }
     }
