@@ -23,7 +23,7 @@ class XsdToObject {
   private $xsdFile;
 
   /**
-   * @var SimpleXML
+   * @var /SimpleXML
    * contents of file in SimpleXML data structure
    */
   private $xsd;
@@ -33,6 +33,12 @@ class XsdToObject {
    * Contains element types found.
    */
   private $types = array();
+
+  /**
+   * @var array
+   * Contains definitions for attribute groups.
+   */
+  private $attributeGroups = array();
 
   /**
    * @var array
@@ -55,6 +61,11 @@ class XsdToObject {
       $this->parseType($element);
     }
 
+    // Loop through all xs:attributeGroups to get attribute definitions
+    foreach ($this->xsd->xpath('///xs:attributeGroup') as $element) {
+      $this->parseAttributeGroup($element);
+    }
+
     // Loop through all xs:elements to get the xpaths
     foreach ($this->xsd->xpath('/xs:schema/xs:element') as $element) {
       $this->parseElement($element);
@@ -72,11 +83,16 @@ class XsdToObject {
 
     $name = (string) $element->attributes()->name;
     $children = $element->children('xs', TRUE);
-    $attributes = $element->xpath('xs:complexType/xs:attribute');
     foreach ($element->xpath('xs:complexType/xs:attribute') as $attribute) {
       $this->elements[$parentPath . $name . '/@' . $attribute->attributes()->name] = array(
         'type' => 'attribute'
       );
+    }
+    foreach ($element->xpath('xs:complexType/xs:attributeGroup') as $attributeGroup) {
+      $groupName = (string) $attributeGroup->attributes()->ref;
+      foreach ($this->attributeGroups[$groupName] as $attribute => $meta) {
+        $this->elements[$parentPath . $name . '/' . $attribute] = $meta;
+      }
     }
     if ($children->count() > 0) {
       foreach ($element->xpath('xs:complexType//xs:element') as $subElement) {
@@ -126,6 +142,21 @@ class XsdToObject {
       $lang = (string) $doc->attributes('xml', TRUE)->lang;
       $text = (string) $doc;
       $this->types[$name][$lang] = $text;
+    }
+  }
+
+  /**
+   * Parse attributeGroups to $this->attributeGroups to get all attributes
+   * @param \SimpleXmlElement $element XSD node containing xs:attributeGroup
+   */
+  private function parseAttributeGroup($element) {
+    $name = (string) $element->attributes()->name;
+    $this->attributeGroups[$name] = array();
+    foreach ($element->xpath('xs:attribute') as $attribute) {
+      $attributename = (string) $attribute->attributes()->name;
+      $this->attributeGroups[$name]['@' . $attributename] = array(
+        'type' => 'attribute'
+      );
     }
   }
 }
