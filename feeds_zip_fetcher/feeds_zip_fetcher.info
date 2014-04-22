@@ -1,6 +1,0 @@
-name = Feeds Archive File Fetcher
-description = Allows you to import zipped files.
-package = Feeds
-core = 7.x
-php = 5.3
-files[] = plugins/FeedsArchiveFileFetcher.inc
