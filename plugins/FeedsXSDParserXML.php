@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Provides the FeedsXPathParserXML class.
+ * Provides the FeedsXSDParserXML class.
  *
  * NOTE:
- * This is a file copy / rename of FeedsXPathParserBase
+ * This was a file copy + rename of FeedsXPathParserBase
  */
 class FeedsXSDParserXML extends FeedsXSDParserBase {
 

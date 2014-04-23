@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Provides the base class for FeedsXPathParserHTML and FeedsXPathParserXML.
+ * Provides the base class for FeedsXSDParserXML.
  *
  * NOTE:
- * This is a file copy / rename of FeedsXPathParserBase
+ * This was a file copy + rename of FeedsXPathParserBase
  */
 
 /**
@@ -18,7 +18,7 @@ abstract class FeedsXSDParserBase extends FeedsParser {
   protected $xpath = NULL;
 
   /**
-   * Classes that use FeedsXPathParserBase must implement this.
+   * Classes that use FeedsXSDParserBase must implement this.
    *
    * @param array $source_config
    *   The configuration for the source.
@@ -148,7 +148,7 @@ abstract class FeedsXSDParserBase extends FeedsParser {
   /**
    * Gets the mappings that are defined by this parser.
    *
-   * The mappings begin with "xpathparser:".
+   * The mappings begin with "xsd:".
    *
    * @return array
    *   An array of mappings keyed source => target.

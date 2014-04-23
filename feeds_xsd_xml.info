@@ -9,3 +9,5 @@ files[] = src/XsdToObject.php
 ; Note files are copied from feeds_xpathparser project then adjusted to our needs
 files[] = plugins/FeedsXSDParserXML.php
 files[] = plugins/FeedsXSDParserBase.php
+
+dependencies[] = feeds_xpathparser
