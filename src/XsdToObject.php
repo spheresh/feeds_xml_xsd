@@ -41,6 +41,12 @@ class XsdToObject {
   private $elements = array();
 
   /**
+   * @var string
+   * Namespace containing http://www.w3.org/2001/XMLSchema
+   */
+  private $schemaNs;
+
+  /**
    * Parse xsd string into possible xpath's and documentation
    * @param string $xsd string containing xsd file
    * @return array
@@ -48,20 +54,33 @@ class XsdToObject {
   public function parse($xsd) {
     $this->xsdFile = $xsd;
     $this->xsd = simplexml_load_string($xsd);
-    $this->xsd->registerXPathNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
+    $namespaces = $this->xsd->getDocNamespaces(TRUE);
+    $schemaNs = '';
 
-    // Loop through all xs:simpleTypes to get annotations
-    foreach ($this->xsd->xpath('///xs:simpleType') as $element) {
+    foreach ($namespaces as $namespace => $nsuri) {
+      $this->xsd->registerXPathNamespace($namespace, $nsuri);
+      if ($nsuri == 'http://www.w3.org/2001/XMLSchema') {
+        $schemaNs = $namespace;
+      }
+    }
+    if ($schemaNs != '') {
+      $schemaNs .= ':';
+    }
+
+    $this->schemaNs = $schemaNs;
+
+    // Loop through all simpleTypes to get annotations
+    foreach ($this->xsd->xpath('///' . $schemaNs . 'simpleType') as $element) {
       $this->parseType($element);
     }
 
-    // Loop through all xs:attributeGroups to get attribute definitions
-    foreach ($this->xsd->xpath('///xs:attributeGroup') as $element) {
+    // Loop through all attributeGroups to get attribute definitions
+    foreach ($this->xsd->xpath('///' . $schemaNs . 'attributeGroup') as $element) {
       $this->parseAttributeGroup($element);
     }
 
-    // Loop through all xs:elements to get the xpaths
-    foreach ($this->xsd->xpath('/xs:schema/xs:element') as $element) {
+    // Loop through all elements to get the xpaths
+    foreach ($this->xsd->xpath('/' . $schemaNs . 'schema/' . $schemaNs . 'element') as $element) {
       $this->parseElement($element);
     }
 
@@ -69,20 +88,22 @@ class XsdToObject {
   }
 
   /**
-   * Parse xs:element to the $this->elements array
-   * @param \SimpleXMLElement $element XSD node containing xs:element
+   * Parse element to the $this->elements array
+   * @param \SimpleXMLElement $element XSD node containing element
    * @param string $parentPath
    */
   private function parseElement($element, $parentPath = '/') {
 
     $name = (string) $element->attributes()->name;
     $children = $element->children('xs', TRUE);
-    foreach ($element->xpath('xs:complexType/xs:attribute') as $attribute) {
+    foreach ($element->xpath($this->schemaNs . 'complexType/' . $this->schemaNs . 'attribute') as $attribute) {
       $this->elements[$parentPath . $name . '/@' . $attribute->attributes()->name] = array(
         'type' => 'attribute'
       );
     }
-    foreach ($element->xpath('xs:complexType/xs:attributeGroup') as $attributeGroup) {
+    foreach ($element->xpath(
+               $this->schemaNs . 'complexType/' . $this->schemaNs . 'attributeGroup'
+             ) as $attributeGroup) {
       $groupName = (string) $attributeGroup->attributes()->ref;
       foreach ($this->attributeGroups[$groupName] as $attribute => $meta) {
         $this->elements[$parentPath . $name . '/' . $attribute] = $meta;
@@ -90,13 +111,13 @@ class XsdToObject {
     }
     if ($children->count() > 0) {
       // Find both complexType/Sequence/element and complexType/All/element
-      foreach ($element->xpath('xs:complexType/*/xs:element') as $subElement) {
+      foreach ($element->xpath($this->schemaNs . 'complexType/*/' . $this->schemaNs . 'element') as $subElement) {
         $this->parseElement($subElement, $parentPath . $name . '/');
       }
     }
     elseif (isset($element->attributes()->ref)) {
       $ref = (string) $element->attributes()->ref;
-      $xpathquery = '(/xs:schema/xs:element[@name="' . $ref . '"])[1]';
+      $xpathquery = '(/' . $this->schemaNs . 'schema/' . $this->schemaNs . 'element[@name="' . $ref . '"])[1]';
       $refelement = $this->xsd->xpath($xpathquery);
       if ($refelement) {
         $this->parseElement($refelement[0], $parentPath);
@@ -126,11 +147,11 @@ class XsdToObject {
 
   /**
    * Parse simpleTypes to $this->types to get annotations
-   * @param \SimpleXMLElement $element XSD node containing xs:simpleType
+   * @param \SimpleXMLElement $element XSD node containing simpleType
    */
   private function parseType($element) {
     $name = (string) $element->attributes()->name;
-    foreach ($element->xpath('xs:annotation/xs:documentation') as $doc) {
+    foreach ($element->xpath($this->schemaNs . 'annotation/' . $this->schemaNs . 'documentation') as $doc) {
       $lang = (string) $doc->attributes('xml', TRUE)->lang;
       $text = (string) $doc;
       $this->types[$name][$lang] = $text;
@@ -139,12 +160,12 @@ class XsdToObject {
 
   /**
    * Parse attributeGroups to $this->attributeGroups to get all attributes
-   * @param \SimpleXmlElement $element XSD node containing xs:attributeGroup
+   * @param \SimpleXmlElement $element XSD node containing attributeGroup
    */
   private function parseAttributeGroup($element) {
     $name = (string) $element->attributes()->name;
     $this->attributeGroups[$name] = array();
-    foreach ($element->xpath('xs:attribute') as $attribute) {
+    foreach ($element->xpath($this->schemaNs . 'attribute') as $attribute) {
       $attributename = (string) $attribute->attributes()->name;
       $this->attributeGroups[$name]['@' . $attributename] = array(
         'type' => 'attribute'
