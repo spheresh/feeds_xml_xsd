@@ -66,7 +66,9 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     );
 
     $contexts = array_unique(array_map('dirname', array_keys($config['xpaths'])));
-    $contexts = array_combine($contexts, $contexts);
+    if (count($contexts)) {
+      $contexts = array_combine($contexts, $contexts);
+    }
     $form['context'] = array(
       '#type' => 'select',
       '#disabled' => !count($config['xpaths']),
