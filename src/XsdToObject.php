@@ -63,13 +63,19 @@ class XsdToObject {
     $schemaNs = '';
 
     foreach ($this->docNamespaces as $namespace => $nsuri) {
-      $this->xsd->registerXPathNamespace($namespace, $nsuri);
       if ($nsuri == 'http://www.w3.org/2001/XMLSchema') {
         $schemaNs = $namespace;
+      }
+      if ($namespace == '') {
+        //If the elements don't have a namespace prefix and xmlns="..." is set then this is needed to run xpaths.
+        $this->xsd->registerXPathNamespace('xsdparser', $nsuri);
       }
     }
     if ($schemaNs != '') {
       $schemaNs .= ':';
+    }
+    else {
+      $schemaNs = 'xsdparser:';
     }
 
     $this->schemaNs = $schemaNs;
@@ -83,7 +89,7 @@ class XsdToObject {
     foreach ($this->xsd->xpath('///' . $schemaNs . 'attributeGroup') as $element) {
       $this->parseAttributeGroup($element);
     }
-
+    echo '/' . $schemaNs . 'schema/' . $schemaNs . 'element' . PHP_EOL;
     // Loop through all elements to get the xpaths
     foreach ($this->xsd->xpath('/' . $schemaNs . 'schema/' . $schemaNs . 'element') as $element) {
       $this->parseElement($element);
