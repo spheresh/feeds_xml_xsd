@@ -9,6 +9,11 @@
  * Class XsdToObject
  */
 class XsdToObject {
+  /**
+   * @var Array
+   * List of namespace definitions found in current document
+   */
+  private $docNamespaces;
 
   /**
    * @var string
@@ -54,10 +59,10 @@ class XsdToObject {
   public function parse($xsd) {
     $this->xsdFile = $xsd;
     $this->xsd = simplexml_load_string($xsd);
-    $namespaces = $this->xsd->getDocNamespaces(TRUE);
+    $this->docNamespaces = $this->xsd->getDocNamespaces(TRUE);
     $schemaNs = '';
 
-    foreach ($namespaces as $namespace => $nsuri) {
+    foreach ($this->docNamespaces as $namespace => $nsuri) {
       $this->xsd->registerXPathNamespace($namespace, $nsuri);
       if ($nsuri == 'http://www.w3.org/2001/XMLSchema') {
         $schemaNs = $namespace;
@@ -171,5 +176,12 @@ class XsdToObject {
         'type' => 'attribute'
       );
     }
+  }
+
+  /**
+   * @return Array
+   */
+  public function getDocNamespaces() {
+    return $this->docNamespaces;
   }
 }
