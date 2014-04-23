@@ -40,6 +40,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       'xsd_fid' => 0,
       'xpaths' => array(),
       'context' => '',
+      'namespaces' => array(),
     );
   }
 
@@ -63,6 +64,16 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     $form['xsd_fid'] = array(
       '#type' => 'value',
       '#value' => $xsd_fid,
+    );
+
+    foreach ($config['namespaces'] as $key => &$namespace) {
+      $namespace = $key . ':' . $namespace;
+    }
+
+    $form['namespaces'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $config['namespaces'],
+      '#title' => 'Select namespaces to import from the XSD'
     );
 
     $contexts = array_unique(array_map('dirname', array_keys($config['xpaths'])));
@@ -99,6 +110,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
         $values['xsd_fid'] = $file->fid;
         $values['xsd_upload'] = $file;
         $values['xpaths'] = $result;
+        $values['namespaces'] = $parser->getDocNamespaces();
       }
     }
     else {
@@ -113,6 +125,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
     $file = file_save($file);
     file_move($file, 'public://' . $file->filename);
     $values['xsd_fid'] = $file->fid;
+    $this->config['namespaces'] = $values['namespaces'];
     $this->config['context'] = $values['context'];
     $this->config['xpaths'] = $values['xpaths'];
     parent::configFormSubmit($values);
