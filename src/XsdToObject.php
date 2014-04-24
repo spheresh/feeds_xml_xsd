@@ -8,7 +8,7 @@
 /**
  * Class XsdToObject
  */
-class XsdToTree {
+class XsdToObject {
 
   /**
    * @var
