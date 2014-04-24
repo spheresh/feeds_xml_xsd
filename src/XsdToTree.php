@@ -34,9 +34,16 @@ class XsdToTree {
   private $schemaNs;
 
   /**
+   * List of all \SimpleXMLElements with name="" attribute
    * @var array
    */
   private $namedElements = array();
+
+  /**
+   * Array of parsed elements from other XSD scheme files
+   * @var array
+   */
+  private $foreignElements = array();
 
   /**
    * @var
@@ -47,6 +54,15 @@ class XsdToTree {
    * @var bool
    */
   public $debug = TRUE;
+
+
+  public function addNamespaceArray($prefix, $array) {
+    $newArray = array();
+    foreach ($array as $element) {
+      $newArray[$element['name']] = $element;
+    }
+    $this->foreignElements[$prefix] = $newArray;
+  }
 
   /**
    * Parse xsd string into possible xpath's and documentation
@@ -60,8 +76,14 @@ class XsdToTree {
     foreach ($xsdArray as $rootElement) {
       $xpaths = array_merge($xpaths, $this->resolveElementToXpath($rootElement, '/'));
     }
+    return $xpaths;
   }
 
+  /**
+   * @param $element
+   * @param string $currentPath
+   * @return array
+   */
   private function resolveElementToXpath($element, $currentPath = '/') {
     $xpaths = array();
     if (!isset($element['name'])) {
@@ -83,11 +105,14 @@ class XsdToTree {
         }
       }
     }
-    print_r($xpaths);
     return $xpaths;
   }
 
-  private function parseToArray($xsd) {
+  /**
+   * @param $xsd
+   * @return array
+   */
+  public function parseToArray($xsd) {
     $this->xsdFile = $xsd;
     $this->xsd = simplexml_load_string($xsd);
     $this->docNamespaces = $this->xsd->getDocNamespaces(TRUE);
@@ -146,6 +171,9 @@ class XsdToTree {
         return array();
       }
     }
+    if (is_array($element)) {
+      return $element;
+    }
     $name = (string) $element->attributes()->name;
     $element->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
 
@@ -182,6 +210,10 @@ class XsdToTree {
     }
     if (isset($this->namedElements[$refname])) {
       return $this->namedElements[$refname];
+    }
+    $part = explode(':', $refname, 2);
+    if (count($part) > 1 && isset($this->foreignElements[$part[0]])) {
+      return $this->foreignElements[$part[0]][$part[1]];
     }
     if ($this->debug) {
       echo 'Reference resolve failed: ' . $refname;
@@ -257,5 +289,10 @@ class XsdToTree {
   }
 }
 
-$test = new XsdToTree();
-$test->parse(file_get_contents(__DIR__ . '/../tests/fixtures/STRI2012.xsd'));
+$xmldsigTest = new XsdToTree();
+$xmldsig = $xmldsigTest->parseToArray(file_get_contents(__DIR__ . '/../tests/fixtures/xmldsig-core-schema.xsd'));
+
+$striTest = new XsdToTree();
+$striTest->addNamespaceArray('ds', $xmldsig);
+$result = $striTest->parse(file_get_contents(__DIR__ . '/../tests/fixtures/STRI2012.xsd'));
+print_r($result);
