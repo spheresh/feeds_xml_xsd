@@ -1,8 +1,26 @@
 Feeds XSD based Parser
+===
 
 This project parses a XML file based on a XSD Schema.
 
-These are the steps to take.
+Import a XML file with XSD based mappings
+---
+
+- Install the required modules
+- Configure a feed importer using this XSD Parser
+- Run it.
+
+Import a XML file then import referenced files
+---
+
+This needs feeds attached to a node.
+
+Say you want to create nodes of type X. Then create content type feedX. Another feed creates content type Y
+which are fetched by content type feedY. There is a relation between X and Y by a URL in a field from X say X.fieldY
+
+To make this work you need to install `rules` module.
+
+
 
 PHP Unit
 ===
