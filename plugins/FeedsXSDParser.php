@@ -84,7 +84,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       '#type' => 'select',
       '#disabled' => !count($config['xpaths']),
       '#title' => t('Context path'),
-      '#options' => count($config['xpaths']) ? $contexts: array(),
+      '#options' => count($config['xpaths']) ? $contexts : array(),
       '#description' => t("The path from which to extract repeating elements."),
       '#default_value' => $config['context'],
     );
@@ -133,7 +133,11 @@ class FeedsXSDParser extends FeedsXSDParserXML {
 
   public function getMappingSources() {
     $xpath_sources = array();
+    $context = $this->config['context'];
     foreach ($this->config['xpaths'] as $path => $properties) {
+      if (strpos($path, $context) !== 0) {
+        continue;
+      }
       $xpath_sources['xsd:' . $path]['name'] = 'xsd:' . $path;
       if (isset($properties['annotation'])) {
         if (isset($properties['annotation']['en'])) {
