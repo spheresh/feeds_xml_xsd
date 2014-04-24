@@ -8,9 +8,8 @@
 /**
  * Class XsdToObject
  */
-class XsdToObject {
-  const REFERENCE_ELEMENT = 'E';
-  const REFERENCE_TYPE = 'T';
+class XsdToTree {
+
   /**
    * @var
    */
@@ -57,10 +56,6 @@ class XsdToObject {
   public $debug = TRUE;
 
 
-  /**
-   * @param $prefix
-   * @param $array
-   */
   public function addNamespaceArray($prefix, $array) {
     $newArray = array();
     foreach ($array as $element) {
@@ -94,20 +89,19 @@ class XsdToObject {
     if (!isset($element['name'])) {
       return $xpaths;
     }
-    $annotations = array();
-    if (isset($element['annotation'])) {
-      $annotations['annotation'] = $element['annotation'];
-    }
-    $xpaths[$currentPath . $element['name']] = $annotations;
+    $xpaths[] = $currentPath . $element['name'];
     if (isset($element['type'])) {
       if (isset($element['type']['attributes'])) {
         foreach ($element['type']['attributes'] as $attribute) {
-          $xpaths[$currentPath . $element['name'] . '/@' . $attribute] = array();
+          $xpaths[] = $currentPath . $element['name'] . '/@' . $attribute;
         }
       }
       if (isset($element['type']['elements'])) {
         foreach ($element['type']['elements'] as $subelement) {
-          $xpaths = $xpaths + $this->resolveElementToXpath($subelement, $currentPath . $element['name'] . '/');
+          $xpaths = array_merge(
+            $xpaths,
+            $this->resolveElementToXpath($subelement, $currentPath . $element['name'] . '/')
+          );
         }
       }
     }
@@ -150,12 +144,8 @@ class XsdToObject {
 
     // Loop through everything to get reference tree
     foreach ($this->xsd->xpath('//*[@name]') as $element) {
-      $type = XsdToObject::REFERENCE_ELEMENT;
-      if (in_array($element->getName(), array('simpleType', 'complexType', 'attributeGroup'))) {
-        $type = XsdToObject::REFERENCE_TYPE;
-      }
-      $this->namedElements[$type . (string) $element->attributes()->name] = $element;
-      $this->namedElements[$type . $this->selfReferencePrefix . ':' . (string) $element->attributes()->name] = $element;
+      $this->namedElements[(string) $element->attributes()->name] = $element;
+      $this->namedElements[$this->selfReferencePrefix . ':' . (string) $element->attributes()->name] = $element;
     }
 
     // Loop through all root elements to start building the tree
@@ -195,40 +185,29 @@ class XsdToObject {
     //Check if the elements references a type or has its type info in the children
     if (isset($element->attributes()->type)) {
       $type = (string) $element->attributes()->type;
-      $type = $this->getRef($type, XsdToObject::REFERENCE_TYPE);
+      $type = $this->getRef($type);
     }
     else {
       $type = $element->xpath('(' . $this->schemaNs . 'complexType | ' . $this->schemaNs . 'simpleType)');
       $type = $type[0];
     }
     if ($type !== NULL) {
-      $elementname = $type->getName();
-      if ($type->getName() == 'complexType') {
-        $returnElement['type'] = $this->parseType($type);
-      }
-      else {
-        $annotation = $this->parseAnnotation($type);
-        if ($annotation !== NULL) {
-          $returnElement['annotation'] = $annotation;
-        }
-      }
+      $returnElement['type'] = $this->parseType($type);
     }
     return $returnElement;
   }
 
   /**
    * @param String|Array $ref
-   * @param string $type
    * @return null|\SimpleXMLElement
    */
-  private function getRef($ref, $type = XsdToObject::REFERENCE_ELEMENT) {
+  private function getRef($ref) {
     if (!is_string($ref)) {
       $refname = (string) $ref[0];
     }
     else {
       $refname = $ref;
     }
-    $refname = $type . $refname;
     if (isset($this->namedElements[$refname])) {
       return $this->namedElements[$refname];
     }
@@ -238,25 +217,6 @@ class XsdToObject {
     }
     if ($this->debug) {
       echo 'Reference resolve failed: ' . $refname;
-    }
-    return NULL;
-  }
-
-  /**
-   * @param \SimpleXMLElement $element
-   * @return null|Array
-   */
-  private function parseAnnotation($element) {
-
-    $element->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
-    $bla = $element->asXML();
-    $annotations = $element->xpath($this->schemaNs . 'annotation/' . $this->schemaNs . 'documentation');
-    if (!empty($annotations)) {
-      $returnAnnotations = array();
-      foreach ($annotations as $annotation) {
-        $returnAnnotations[(string) $annotation->attributes('xml', TRUE)->lang] = (string) $annotation;
-      }
-      return $returnAnnotations;
     }
     return NULL;
   }
@@ -292,7 +252,7 @@ class XsdToObject {
         $returnType['attributes'] = array();
       }
       $ref = $attributegroup->attributes()->ref;
-      $attributegroup = $this->getRef($ref, XsdToObject::REFERENCE_TYPE);
+      $attributegroup = $this->getRef($ref);
       $returnType['attributes'] = array_merge($returnType['attributes'], $this->parseAttributeGroup($attributegroup));
     }
     return $returnType;
@@ -328,3 +288,11 @@ class XsdToObject {
     return $this->docNamespaces;
   }
 }
+
+$xmldsigTest = new XsdToTree();
+$xmldsig = $xmldsigTest->parseToArray(file_get_contents(__DIR__ . '/../tests/fixtures/xmldsig-core-schema.xsd'));
+
+$striTest = new XsdToTree();
+$striTest->addNamespaceArray('ds', $xmldsig);
+$result = $striTest->parse(file_get_contents(__DIR__ . '/../tests/fixtures/STRI2012.xsd'));
+print_r($result);
