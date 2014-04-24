@@ -3,19 +3,16 @@
 class XsdToObjectTest extends PHPUnit_Framework_TestCase {
 
   /**
-   * @dataProvider xpaths
+   * @dataProvider annotations
    */
-  function testAnnotations($xpaths) {
-    $paths = $xpaths;
-    $annotations = array();
-    foreach ($paths as $path => $values) {
-      if (isset($values['annotation'])) {
-        $annotation = $values['annotation'];
-        $annotations[join(",", $annotation)][] = $path;
-      }
-    }
-    $this->assertFalse(isset($annotations['']), 'Only existing annotation should be listed');
-    //$this->assertSameSize(array(1), $annotations[0], "Expected one item in annotation");
+  function testAnnotations($xpaths, $xpath, $lang, $value) {
+    $this->assertArrayHasKey('annotation', $xpaths[$xpath], 'Element has annotation');
+    $this->assertArrayHasKey(
+      $lang,
+      $xpaths[$xpath]['annotation'],
+      'Element has annotation in language "' . $lang . '"'
+    );
+    $this->assertSame($value, $xpaths[$xpath]['annotation'][$lang], 'Annotation is correct');
   }
 
   /**
@@ -87,6 +84,23 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
       $provider[] = array(
         $row['xpaths']
       );
+
+    }
+    return $provider;
+  }
+
+  public function annotations() {
+    $values = $this->XsdProviderBase();
+    $provider = array();
+    foreach ($values as $row) {
+      foreach ($row['annotations'] as $annotations) {
+        $provider[] = array(
+          $row['xpaths'],
+          $annotations[0],
+          $annotations[1],
+          $annotations[2]
+        );
+      }
     }
     return $provider;
   }
@@ -113,6 +127,9 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
           array('/Manifest/Dossier/@Id'),
           array('/Manifest/Dossier/@Status'),
           array('/Manifest/Dossier/Plan/@Id'),
+        ),
+        'annotations' => array(
+          array('/Manifest/Dossier/Plan/Naam', 'nl', "waarde is gelijk aan IMRO:naam van het\n\t\t\t\tinstrument")
         )
       ),
       array(
@@ -124,7 +141,8 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
         ),
         'attributes' => array(
           array('/Signature/@Id')
-        )
+        ),
+        'annotations' => array()
       )
     );
   }

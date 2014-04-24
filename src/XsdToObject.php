@@ -96,7 +96,7 @@ class XsdToObject {
     }
     $annotations = array();
     if (isset($element['annotation'])) {
-      $annotations['annotations'] = $element['annotation'];
+      $annotations['annotation'] = $element['annotation'];
     }
     $xpaths[$currentPath . $element['name']] = $annotations;
     if (isset($element['type'])) {
