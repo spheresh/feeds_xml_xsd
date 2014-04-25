@@ -34,6 +34,17 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
     $this->assertArrayHasKey($path, $xpath, $path . ' found');
   }
 
+  /**
+   * @dataProvider XsdProviderBase
+   */
+  function testErrors($arr) {
+    $args = func_get_args();
+    $file = $args[1];
+    $errors = $args[6];
+    $errorCount = $args[7];
+    $this->assertSame($errorCount, count($errors), $file);
+  }
+
   public function values() {
     $values = $this->XsdProviderBase();
     $provider = array();
@@ -106,45 +117,79 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
   }
 
   public function XsdProviderBase() {
-    $xsdStri2012 = new XsdToObject();
-    $xpathStri2012 = $xsdStri2012->parse(file_get_contents(__DIR__ . "/fixtures/STRI2012.xsd"));
+    $result = array();
 
-    $xsdXmldsig = new XsdToObject();
-    $xpathXmldsign = $xsdXmldsig->parse(file_get_contents(__DIR__ . "/fixtures/xmldsig-core-schema.xsd"));
-
-    return array(
-      array(
-        'parser' => $xsdStri2012,
-        'xpaths' => $xpathStri2012,
-        'values' => array(
-          array('/Manifest/Dossier/Plan/Naam', TRUE),
-          array('/Manifest/Dossier/Plan/Datum', TRUE),
-          array('/Manifest/Dossier/Naam', FALSE),
-          array('/Manifest/Dossier/Datum', FALSE),
-        ),
-        'attributes' => array(
-          array('/Manifest/@OverheidsCode'),
-          array('/Manifest/Dossier/@Id'),
-          array('/Manifest/Dossier/@Status'),
-          array('/Manifest/Dossier/Plan/@Id'),
-        ),
-        'annotations' => array(
-          array('/Manifest/Dossier/Plan/Naam', 'nl', "waarde is gelijk aan IMRO:naam van het\n\t\t\t\tinstrument")
-        )
+    $case = array(
+      'parser' => new XsdToObject(),
+      'file' => __DIR__ . "/fixtures/STRI2012.xsd",
+      'values' => array(
+        array('/Manifest/Dossier/Plan/Naam', TRUE),
+        array('/Manifest/Dossier/Plan/Datum', TRUE),
+        array('/Manifest/Dossier/Naam', FALSE),
+        array('/Manifest/Dossier/Datum', FALSE),
       ),
-      array(
-        'parser' => $xsdXmldsig,
-        'xpaths' => $xpathXmldsign,
-        'values' => array(
-          array('/Signature', TRUE),
-          array('/Object', TRUE)
-        ),
-        'attributes' => array(
-          array('/Signature/@Id')
-        ),
-        'annotations' => array()
+      'attributes' => array(
+        array('/Manifest/@OverheidsCode'),
+        array('/Manifest/Dossier/@Id'),
+        array('/Manifest/Dossier/@Status'),
+        array('/Manifest/Dossier/Plan/@Id'),
+      ),
+      'annotations' => array(
+        array('/Manifest/Dossier/Plan/Naam', 'nl', "waarde is gelijk aan IMRO:naam van het\n\t\t\t\tinstrument")
       )
     );
+    $case['xpaths'] = $case['parser']->parse(file_get_contents($case['file']));
+    $case['errors'] = $case['parser']->getErrors();
+    $case['error_count'] = 6;
+    $result[] = $case;
+
+    $case = array(
+      'parser' => new XsdToObject(),
+      'file' => __DIR__ . "/fixtures/xmldsig-core-schema.xsd",
+      'values' => array(
+        array('/Signature', TRUE),
+        array('/Object', TRUE)
+      ),
+      'attributes' => array(
+        array('/Signature/@Id')
+      ),
+      'annotations' => array()
+    );
+    $case['xpaths'] = $case['parser']->parse(file_get_contents($case['file']));
+    $case['errors'] = $case['parser']->getErrors();
+    $case['error_count'] = 18;
+    $result[] = $case;
+
+    $case = array(
+      'parser' => new XsdToObject(),
+      'file' => __DIR__ . "/fixtures/STRI2012.xsd",
+      'values' => array(
+        array('/Manifest/Dossier/Plan/Naam', TRUE),
+        array('/Manifest/Dossier/Plan/Datum', TRUE),
+        array('/Manifest/Dossier/Naam', FALSE),
+        array('/Manifest/Dossier/Datum', FALSE),
+      ),
+      'attributes' => array(
+        array('/Manifest/@OverheidsCode'),
+        array('/Manifest/Dossier/@Id'),
+        array('/Manifest/Dossier/@Status'),
+        array('/Manifest/Dossier/Plan/@Id'),
+      ),
+      'annotations' => array(
+        array('/Manifest/Dossier/Plan/Naam', 'nl', "waarde is gelijk aan IMRO:naam van het\n\t\t\t\tinstrument")
+      )
+    );
+    $parser = new XsdToObject();
+    $xml_ds = $parser->parseToArray(file_get_contents( __DIR__ . "/fixtures/xmldsig-core-schema.xsd"));
+    $case['parser']->addNamespaceArray('ds', $xml_ds);
+
+    $case['xpaths'] = $case['parser']->parse(file_get_contents($case['file']));
+    $case['errors'] = $case['parser']->getErrors();
+    $case['error_count'] = 8;
+    $result[] = $case;
+
+    return $result;
+
   }
 
 }

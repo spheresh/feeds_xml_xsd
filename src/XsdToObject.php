@@ -72,12 +72,43 @@ class XsdToObject {
   public $debug = TRUE;
 
   /**
-   * Set debug echo's on or off
+   * Set debug on or off
    *
    * @param boolean $debug
    */
   public function setDebug($debug) {
     $this->debug = $debug;
+  }
+
+  /*
+   * @var array
+   * Contains a list of processing errors found.
+   */
+  private $_errors = array();
+
+  /**
+   * Returns list of errors found.
+   *
+   * @return array
+   */
+  public function getErrors() {
+    return $this->_errors;
+  }
+
+  /**
+   * Adds error to list of errors.
+   *
+   * @param string $error
+   */
+  protected function addError($error) {
+    $this->_errors[] = $error;
+  }
+
+  /**
+   * Resets errors.
+   */
+  protected function resetErrors() {
+    $this->_errors = array();
   }
 
   /**
@@ -111,6 +142,8 @@ class XsdToObject {
    * @return array
    */
   public function parse($xsd) {
+    $this->resetErrors();
+
     $xsdArray = $this->parseToArray($xsd);
 
     $xpaths = array();
@@ -284,7 +317,7 @@ class XsdToObject {
       return $this->foreignElements[$part[0]][$part[1]];
     }
     if ($this->debug) {
-      echo 'Reference resolve failed: ' . $refName;
+      $this->addError('Reference resolve failed: ' . $refName);
     }
     return NULL;
   }
