@@ -143,7 +143,6 @@ class XsdToObject {
    */
   public function addNamespace($prefix, $xsd) {
     $parser = new XsdToObject();
-    dsm($xsd);
     $data = $parser->parseToArray($xsd);
     $this->addNamespaceArray($prefix, $data);
   }
