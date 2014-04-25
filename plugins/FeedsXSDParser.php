@@ -41,6 +41,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       'xpaths' => array(),
       'context' => '',
       'namespaces' => array(),
+      'available_namespaces' => array(),
     );
   }
 
@@ -66,14 +67,17 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       '#value' => $xsd_fid,
     );
 
-    foreach ($config['namespaces'] as $key => &$namespace) {
-      $namespace = $key . ':' . $namespace;
+    foreach ($config['available_namespaces'] as $key => &$namespace) {
+      if (!empty($key)) {
+        $namespace = $key . ':' . $namespace;
+      }
     }
 
     $form['namespaces'] = array(
       '#type' => 'checkboxes',
-      '#options' => $config['namespaces'],
-      '#title' => 'Select namespaces to import from the XSD'
+      '#options' => $config['available_namespaces'],
+      '#title' => 'Select namespaces to import from the XSD',
+      '#default_value' => $config['namespaces'],
     );
 
     $contexts = array_unique(array_map('dirname', array_keys($config['xpaths'])));
@@ -93,6 +97,8 @@ class FeedsXSDParser extends FeedsXSDParserXML {
   }
 
   public function configFormValidate(&$values) {
+    $config = $this->getConfig();
+    dsm($config);
     $file = file_save_upload('xsd_upload', array(
       'file_validate_extensions' => array('xsd')
     ));
@@ -100,6 +106,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       $file = file_load($values['xsd_fid']);
     }
     if ($file) {
+      dsm($values);
       $parser = new XsdToObject();
       $xsd = file_get_contents($file->uri);
       $result = $parser->parse($xsd);
@@ -110,7 +117,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
         $values['xsd_fid'] = $file->fid;
         $values['xsd_upload'] = $file;
         $values['xpaths'] = $result;
-        $values['namespaces'] = $parser->getDocNamespaces();
+        $values['available_namespaces'] = $parser->getDocNamespaces();
       }
     }
     else {
