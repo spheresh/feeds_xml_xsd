@@ -10,6 +10,7 @@ if (!isset($argv[1])) {
 
 
 $uri = $argv[1];
+// TODO: add context to get correct result type: application/xml
 $content = @file_get_contents($uri);
 if ($content) {
   $test = new XsdToObject();

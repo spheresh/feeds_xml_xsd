@@ -39,6 +39,7 @@ $ ./tests/manual/testXsdToObject.php http://schemas.geonovum.nl/stri/2012/1.0/ST
 
 # This one fails now and then
 $ ./tests/manual/testXsdToObject.php http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd
+$ ./tests/manual/testXsdToObject.php http://www.w3.org/2000/07/xmldsig-core/xmldsig-core-schema.xsd
 ```
 
 This gives JSON output

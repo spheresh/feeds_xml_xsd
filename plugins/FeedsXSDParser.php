@@ -75,6 +75,7 @@ class FeedsXSDParser extends FeedsXSDParserXML {
 
     $form['namespaces'] = array(
       '#type' => 'checkboxes',
+      '#description' => t("Adding namespaces could lead to longer form reload time."),
       '#options' => $config['available_namespaces'],
       '#title' => 'Select namespaces to import from the XSD',
       '#default_value' => $config['namespaces'],
