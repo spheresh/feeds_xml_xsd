@@ -8,13 +8,16 @@ if (!isset($argv[1])) {
   exit(1);
 }
 
-$test = new XsdToObject();
 
 $uri = $argv[1];
 $content = @file_get_contents($uri);
 if ($content) {
+  $test = new XsdToObject();
   $schema = $test->parse($content);
-  echo json_encode($schema, JSON_PRETTY_PRINT);
+  echo PHP_EOL . "Found namespaces: " . PHP_EOL;
+  print_r($test->getDocNamespaces());
+  echo PHP_EOL . "Found XPath for default namespace: " . PHP_EOL;
+  echo '  ' . join(PHP_EOL . '  ', array_keys($schema)) . PHP_EOL . PHP_EOL;
 }
 else {
   echo "No content found for $uri" . PHP_EOL;
