@@ -114,6 +114,13 @@ class FeedsXSDParser extends FeedsXSDParserXML {
         form_set_error('xsd_upload', t("This does not seem to be a valid XSD schema"));
       }
       else {
+        $errors = $parser->getErrors();
+        if (!empty($errors)) {
+          $unique = array_unique($errors);
+          asort($unique);
+          $list = theme('item_list', array('items' => $unique));
+          drupal_set_message("Some elements could not be resolved. You could add more namespaces. " . $list, 'warning');
+        }
         $values['xsd_fid'] = $file->fid;
         $values['xsd_upload'] = $file;
         $values['xpaths'] = $result;
