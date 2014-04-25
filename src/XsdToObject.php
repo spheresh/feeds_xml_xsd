@@ -136,6 +136,19 @@ class XsdToObject {
   }
 
   /**
+   * Add another schema to this parser from string. This is used for resolving references of types in other namespaces.
+   *
+   * @param string $prefix namespace prefix to add data to
+   * @param string $xsd string containing XSD schema
+   */
+  public function addNamespace($prefix, $xsd) {
+    $parser = new XsdToObject();
+    dsm($xsd);
+    $data = $parser->parseToArray($xsd);
+    $this->addNamespaceArray($prefix, $data);
+  }
+
+  /**
    * Parse xsd string into possible xpath's and documentation
    *
    * @param string $xsd contains XSD

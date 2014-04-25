@@ -98,7 +98,6 @@ class FeedsXSDParser extends FeedsXSDParserXML {
 
   public function configFormValidate(&$values) {
     $config = $this->getConfig();
-    dsm($config);
     $file = file_save_upload('xsd_upload', array(
       'file_validate_extensions' => array('xsd')
     ));
@@ -106,9 +105,24 @@ class FeedsXSDParser extends FeedsXSDParserXML {
       $file = file_load($values['xsd_fid']);
     }
     if ($file) {
-      dsm($values);
       $parser = new XsdToObject();
       $xsd = file_get_contents($file->uri);
+      foreach ($values['namespaces'] as $extraNamespace => $value) {
+        if ($extraNamespace === $value) {
+          $options = array(
+            'headers' => array(
+              'accept' => 'application/xml'
+            )
+          );
+          $schema = drupal_http_request($config['available_namespaces'][$extraNamespace], $options);
+          if ($schema->code == 303) {
+            $newUrl = $schema->headers['location'];
+            // w3.org sends wrong redirect code and drupal_http_request doesn't understand 303
+            $schema = drupal_http_request($newUrl, $options);
+          }
+          $parser->addNamespace($extraNamespace, $schema->data);
+        }
+      }
       $result = $parser->parse($xsd);
       if (count($result) == 0) {
         form_set_error('xsd_upload', t("This does not seem to be a valid XSD schema"));
