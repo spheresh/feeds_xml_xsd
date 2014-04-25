@@ -19,22 +19,21 @@
  */
 class XsdToObject {
 
-  // TODO
+  /**
+   *  Lookup prefix for getRef($ref, $prefix)
+   */
   const REFERENCE_ELEMENT = 'E';
 
-  // TODO
+  /**
+   *  Lookup prefix for getRef($ref, $prefix)
+   */
   const REFERENCE_TYPE = 'T';
 
   /**
-   * @var
+   * @var Array
+   * list of namespaces and prefixes in current document
    */
   private $docNamespaces;
-
-  /**
-   * @var string
-   * File URI to process.
-   */
-  private $xsdFile;
 
   /**
    * @var /SimpleXML
@@ -61,19 +60,38 @@ class XsdToObject {
   private $foreignElements = array();
 
   /**
-   * @var
+   * @var string
+   * Prefix used in some schema's to reference to itself (w3.org schema's for example)
    */
   private $selfReferencePrefix;
 
   /**
    * @var bool
-   * TODO: get/set
+   * Display debug messages
    */
   public $debug = TRUE;
 
+  /**
+   * Set debug echo's on or off
+   *
+   * @param boolean $debug
+   */
+  public function setDebug($debug) {
+    $this->debug = $debug;
+  }
 
   /**
-   * TODO
+   * Get current debug setting
+   *
+   * @return boolean
+   */
+  public function getDebug() {
+    return $this->debug;
+  }
+
+  /**
+   * Add parseToArray result from another schema to this parser. This is used for resolving references of types in other
+   * namespaces. (xmldsig for example)
    *
    * @param $prefix
    * @param $array
@@ -104,8 +122,9 @@ class XsdToObject {
   }
 
   /**
-   * TODO
-   * @param $element
+   * Recursive function to transform the parseToArray result to the list of xpaths in a schema.
+   *
+   * @param array $element
    * @param string $currentPath
    * @return array
    */
@@ -126,8 +145,8 @@ class XsdToObject {
         }
       }
       if (isset($element['type']['elements'])) {
-        foreach ($element['type']['elements'] as $subelement) {
-          $xpaths = $xpaths + $this->resolveElementToXpath($subelement, $currentPath . $element['name'] . '/');
+        foreach ($element['type']['elements'] as $subElement) {
+          $xpaths = $xpaths + $this->resolveElementToXpath($subElement, $currentPath . $element['name'] . '/');
         }
       }
     }
@@ -135,24 +154,23 @@ class XsdToObject {
   }
 
   /**
-   * TODO
+   * Parse string containing XSD data to an array containing all possible elements and attributes. This is used by
+   * the parse($xsd) function to generate xpaths.
    * @param $xsd
    * @return array
    */
   public function parseToArray($xsd) {
-    // TODO necessary?
-    $this->xsdFile = $xsd;
     $this->xsd = simplexml_load_string($xsd);
     $this->docNamespaces = $this->xsd->getDocNamespaces(TRUE);
     $schemaNs = '';
 
-    foreach ($this->docNamespaces as $namespace => $nsuri) {
-      if ($nsuri == 'http://www.w3.org/2001/XMLSchema') {
-        $schemaNs = $namespace;
+    foreach ($this->docNamespaces as $namespacePrefix => $namespaceUrl) {
+      if ($namespaceUrl == 'http://www.w3.org/2001/XMLSchema') {
+        $schemaNs = $namespacePrefix;
       }
-      if ($namespace == '') {
+      if ($namespacePrefix == '') {
         //If the elements don't have a namespace prefix and xmlns="..." is set then this is needed to run xpaths.
-        $this->xsd->registerXPathNamespace('xsdparser', $nsuri);
+        $this->xsd->registerXPathNamespace('xsdparser', $namespaceUrl);
       }
     }
     if ($schemaNs != '') {
@@ -161,17 +179,16 @@ class XsdToObject {
     else {
       $schemaNs = 'xsdparser:';
     }
-    // TODO PHP 5.4 construct
-    $targetNamespace = (string) $this->xsd->xpath('/' . $schemaNs . 'schema/@targetNamespace')[0];
-    // TODO
-    $prefixes = array_flip($this->docNamespaces);
+    $this->schemaNs = $schemaNs;
 
+    $targetNamespace = $this->xsd->xpath('/' . $schemaNs . 'schema/@targetNamespace');
+    $targetNamespace = (string) $targetNamespace[0];
+
+    // Flip prefixes with namespace URLs for easier lookup
+    $prefixes = array_flip($this->docNamespaces);
     if (isset($prefixes[$targetNamespace])) {
       $this->selfReferencePrefix = $prefixes[$targetNamespace];
     }
-
-    // TODO rename currentSchemaNs
-    $this->schemaNs = $schemaNs;
 
     // Loop through everything to get reference tree
     foreach ($this->xsd->xpath('//*[@name]') as $element) {
@@ -179,6 +196,7 @@ class XsdToObject {
       if (in_array($element->getName(), array('simpleType', 'complexType', 'attributeGroup'))) {
         $type = XsdToObject::REFERENCE_TYPE;
       }
+      // Save with prefix and without for easier lookup
       $this->namedElements[$type . (string) $element->attributes()->name] = $element;
       $this->namedElements[$type . $this->selfReferencePrefix . ':' . (string) $element->attributes()->name] = $element;
     }
@@ -193,6 +211,7 @@ class XsdToObject {
 
   /**
    * Parse element or element reference
+   *
    * @param \SimpleXMLElement $element XSD node containing element
    * @return array
    */
@@ -227,8 +246,6 @@ class XsdToObject {
       $type = $type[0];
     }
     if ($type !== NULL) {
-      // TODO: Not used?
-      $elementname = $type->getName();
       if ($type->getName() == 'complexType') {
         $returnElement['type'] = $this->parseType($type);
       }
@@ -243,7 +260,9 @@ class XsdToObject {
   }
 
   /**
-   * TODO
+   * Resolve references in XSD schema's
+   * Use XsdToObject::REFERENCE_ELEMENT for resolving ref="example" and xsdToObject::REFERENCE_TYPE for resolving
+   * type="example". This is needed because naming of elements and types can overlap.
    *
    * @param String|Array $ref
    * @param string $type
@@ -251,26 +270,28 @@ class XsdToObject {
    */
   private function getRef($ref, $type = XsdToObject::REFERENCE_ELEMENT) {
     if (!is_string($ref)) {
-      $refname = (string) $ref[0];
+      $refName = (string) $ref[0];
     }
     else {
-      $refname = $ref;
+      $refName = $ref;
     }
-    $refname = $type . $refname;
-    if (isset($this->namedElements[$refname])) {
-      return $this->namedElements[$refname];
+    $refName = $type . $refName;
+    if (isset($this->namedElements[$refName])) {
+      return $this->namedElements[$refName];
     }
-    $part = explode(':', $refname, 2);
+    $part = explode(':', $refName, 2);
     if (count($part) > 1 && isset($this->foreignElements[$part[0]])) {
       return $this->foreignElements[$part[0]][$part[1]];
     }
     if ($this->debug) {
-      echo 'Reference resolve failed: ' . $refname;
+      echo 'Reference resolve failed: ' . $refName;
     }
     return NULL;
   }
 
   /**
+   * Parse annotations in simpleTypes to get documentation for the xpaths.
+   *
    * @param \SimpleXMLElement $element
    * @return null|Array
    */
@@ -315,14 +336,14 @@ class XsdToObject {
     foreach ($attributes as $attribute) {
       $returnType['attributes'][] = $this->parseAttribute($attribute);
     }
-    $attributegroups = $element->xpath($this->schemaNs . 'attributeGroup');
-    foreach ($attributegroups as $attributegroup) {
+    $attributeGroups = $element->xpath($this->schemaNs . 'attributeGroup');
+    foreach ($attributeGroups as $attributeGroup) {
       if (!isset($returnType['attributes'])) {
         $returnType['attributes'] = array();
       }
-      $ref = $attributegroup->attributes()->ref;
-      $attributegroup = $this->getRef($ref, XsdToObject::REFERENCE_TYPE);
-      $returnType['attributes'] = array_merge($returnType['attributes'], $this->parseAttributeGroup($attributegroup));
+      $ref = $attributeGroup->attributes()->ref;
+      $attributeGroup = $this->getRef($ref, XsdToObject::REFERENCE_TYPE);
+      $returnType['attributes'] = array_merge($returnType['attributes'], $this->parseAttributeGroup($attributeGroup));
     }
     return $returnType;
   }
