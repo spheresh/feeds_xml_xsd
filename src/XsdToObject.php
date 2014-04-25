@@ -7,10 +7,24 @@
 
 /**
  * Class XsdToObject
+ * TODO
+ *
+ * This code contains a lot of
+ * @code
+ * $element->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
+ * @endcode
+ * lines which seems to be necessary as SimpleXML forgets it's namespaces when calling a method.
+ *
+ * Is this due to scope change?!?
  */
 class XsdToObject {
+
+  // TODO
   const REFERENCE_ELEMENT = 'E';
+
+  // TODO
   const REFERENCE_TYPE = 'T';
+
   /**
    * @var
    */
@@ -53,11 +67,14 @@ class XsdToObject {
 
   /**
    * @var bool
+   * TODO: get/set
    */
   public $debug = TRUE;
 
 
   /**
+   * TODO
+   *
    * @param $prefix
    * @param $array
    */
@@ -71,7 +88,8 @@ class XsdToObject {
 
   /**
    * Parse xsd string into possible xpath's and documentation
-   * @param string $xsd string containing xsd file
+   *
+   * @param string $xsd contains XSD
    * @return array
    */
   public function parse($xsd) {
@@ -79,12 +97,14 @@ class XsdToObject {
 
     $xpaths = array();
     foreach ($xsdArray as $rootElement) {
+      // TODO: is this ok still
       $xpaths = array_merge($xpaths, $this->resolveElementToXpath($rootElement, '/'));
     }
     return $xpaths;
   }
 
   /**
+   * TODO
    * @param $element
    * @param string $currentPath
    * @return array
@@ -115,10 +135,12 @@ class XsdToObject {
   }
 
   /**
+   * TODO
    * @param $xsd
    * @return array
    */
   public function parseToArray($xsd) {
+    // TODO necessary?
     $this->xsdFile = $xsd;
     $this->xsd = simplexml_load_string($xsd);
     $this->docNamespaces = $this->xsd->getDocNamespaces(TRUE);
@@ -139,13 +161,16 @@ class XsdToObject {
     else {
       $schemaNs = 'xsdparser:';
     }
+    // TODO PHP 5.4 construct
     $targetNamespace = (string) $this->xsd->xpath('/' . $schemaNs . 'schema/@targetNamespace')[0];
+    // TODO
     $prefixes = array_flip($this->docNamespaces);
 
     if (isset($prefixes[$targetNamespace])) {
       $this->selfReferencePrefix = $prefixes[$targetNamespace];
     }
 
+    // TODO rename currentSchemaNs
     $this->schemaNs = $schemaNs;
 
     // Loop through everything to get reference tree
@@ -173,7 +198,7 @@ class XsdToObject {
    */
   private function parseElement($element) {
     $element->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
-    // If this is a <element ref=""> instead of an actual element, get the actual element and continue parsing
+    // If this is a <element ref=""> instead of an actual element, get the referenced element and continue parsing
     $ref = $element->attributes()->ref;
     if ($ref !== NULL) {
       $element = $this->getRef($ref);
@@ -185,8 +210,8 @@ class XsdToObject {
       return $element;
     }
     $name = (string) $element->attributes()->name;
+    // Remove colon
     $element->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
-
 
     $returnElement = array(
       'name' => $name
@@ -202,6 +227,7 @@ class XsdToObject {
       $type = $type[0];
     }
     if ($type !== NULL) {
+      // TODO: Not used?
       $elementname = $type->getName();
       if ($type->getName() == 'complexType') {
         $returnElement['type'] = $this->parseType($type);
@@ -217,6 +243,8 @@ class XsdToObject {
   }
 
   /**
+   * TODO
+   *
    * @param String|Array $ref
    * @param string $type
    * @return null|\SimpleXMLElement
@@ -249,10 +277,11 @@ class XsdToObject {
   private function parseAnnotation($element) {
 
     $element->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
-    $bla = $element->asXML();
+
     $annotations = $element->xpath($this->schemaNs . 'annotation/' . $this->schemaNs . 'documentation');
     if (!empty($annotations)) {
       $returnAnnotations = array();
+      // Process each language separate.
       foreach ($annotations as $annotation) {
         $returnAnnotations[(string) $annotation->attributes('xml', TRUE)->lang] = (string) $annotation;
       }
@@ -263,6 +292,7 @@ class XsdToObject {
 
   /**
    * Parse ComplexType to get attributes and subnodes
+   *
    * @param \SimpleXMLElement $element XSD node containing simpleType
    * @return Array
    */
@@ -273,7 +303,6 @@ class XsdToObject {
     $returnType = array();
     if (count($container) > 0) {
       $container = $container[0];
-
 
       $container->registerXPathNamespace(substr($this->schemaNs, 0, -1), 'http://www.w3.org/2001/XMLSchema');
       $elements = $container->xpath($this->schemaNs . 'element');
@@ -300,6 +329,7 @@ class XsdToObject {
 
   /**
    * Parse SimpleXmlElement containing <attribute name="">
+   *
    * @param \SimpleXmlElement $element
    * @return string
    */
@@ -309,6 +339,7 @@ class XsdToObject {
 
   /**
    * Parse SimpleXmlElement containing <attributeGroup name="">
+   *
    * @param \SimpleXmlElement $element XSD node containing attributeGroup
    * @return array
    */
@@ -322,6 +353,7 @@ class XsdToObject {
 
   /**
    * Get all namespaces used in this document
+   *
    * @return Array
    */
   public function getDocNamespaces() {
