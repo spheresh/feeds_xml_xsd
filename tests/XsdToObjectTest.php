@@ -185,7 +185,7 @@ class XsdToObjectTest extends PHPUnit_Framework_TestCase {
 
     $case['xpaths'] = $case['parser']->parse(file_get_contents($case['file']));
     $case['errors'] = $case['parser']->getErrors();
-    $case['error_count'] = 8;
+    $case['error_count'] = 4;
     $result[] = $case;
 
     return $result;

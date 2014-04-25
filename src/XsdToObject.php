@@ -308,9 +308,9 @@ class XsdToObject {
     else {
       $refName = $ref;
     }
-    $refName = $type . $refName;
-    if (isset($this->namedElements[$refName])) {
-      return $this->namedElements[$refName];
+    $typedRefName = $type . $refName;
+    if (isset($this->namedElements[$typedRefName])) {
+      return $this->namedElements[$typedRefName];
     }
     $part = explode(':', $refName, 2);
     if (count($part) > 1 && isset($this->foreignElements[$part[0]])) {
